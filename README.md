@@ -1,4 +1,4 @@
-# [AngularJS](http://www.angularjs.org) SCRUM application demo
+# SCRUM application demo
 
 ## SCRUM介绍
 
