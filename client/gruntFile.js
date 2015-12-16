@@ -11,7 +11,7 @@ module.exports = function( grunt ){
     grunt.loadNpmTasks('grunt-karma');
     grunt.loadNpmTasks('grunt-recess');
 
-    grunt.registerTask('default',['jshint','clean']);
+    grunt.registerTask('default',['jshint','clean','concat']);
 
     var karmaConfig = function(configFile, customOptions) {
         var options = { configFile: configFile, keepalive: true };
@@ -83,7 +83,7 @@ module.exports = function( grunt ){
                     banner: '<%= banner %>'
                 },
                 src: ['<%= src.js %>','<%= src.jsTpl %>'],  //src内的js文件以及templates内的js文件
-                dest: '<%= distdir %>/<% pkg.name %>.js'  //保存在scrum.js中
+                dest: '<%= distdir %>/<%= pkg.name %>.js'  //保存在scrum.js中
             },
             index: {
                 src: ['src/index.html'],
@@ -110,7 +110,7 @@ module.exports = function( grunt ){
             }
         },
 
-        ugnify: {
+        uglify: {  //tested uglify
             dist:{
                 options: {
                     banner: "<%= banner %>"
@@ -135,7 +135,7 @@ module.exports = function( grunt ){
                 dest: '<%= distdir %>/jquery.js'
             }
         },
-        recess: {
+        recess: {  //recess:build has been tested
             build: {
                 files: {
                     '<%= distdir %>/<%= pkg.name %>.css': ['<%= src.less %>']
