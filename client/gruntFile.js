@@ -45,10 +45,10 @@ module.exports = function( grunt ){
             lessWatch: ['src/less/**/*.less']
         },
 
-        clean: ['<%= pkg.distdir %>/*'],
+        clean: ['<%= distdir %>/*'],  //test
 
         copy : {
-            assets: {
+            assets: {  //test 复制assets资料
                 files: [{ dest: '<%= distdir %>', src: '**', expand: true, cwd: 'src/assets/' }]
             }
         },
@@ -153,7 +153,7 @@ module.exports = function( grunt ){
                 }
             }
         },
-        jshint: {
+        jshint: {  //test
             files: ['gruntFile.js','<%= src.js %>','<%= src.jsTpl %>','<%= src.specs %>','<%= src.scenarios %>'],
             options: {
                 curly: true,
