@@ -1,6 +1,18 @@
 //包含整个grunt的配置信息
 module.exports = function( grunt ){
 
+    grunt.loadNpmTasks('grunt-contrib-clean');
+    grunt.loadNpmTasks('grunt-contrib-concat');
+    grunt.loadNpmTasks('grunt-contrib-copy');
+    grunt.loadNpmTasks('grunt-contrib-jshint');
+    grunt.loadNpmTasks('grunt-contrib-uglify');
+    grunt.loadNpmTasks('grunt-contrib-watch');
+    grunt.loadNpmTasks('grunt-html2js');
+    grunt.loadNpmTasks('grunt-karma');
+    grunt.loadNpmTasks('grunt-recess');
+
+    grunt.registerTask('default',['jshint','clean']);
+
     var karmaConfig = function(configFile, customOptions) {
         var options = { configFile: configFile, keepalive: true };
         var travisOptions = process.env.TRAVIS && { browsers: ['Firefox'], reporters: 'dots' };
@@ -33,7 +45,7 @@ module.exports = function( grunt ){
             lessWatch: ['src/less/**/*.less']
         },
 
-        clean: '[<%= pkg.distdir %>/*]',
+        clean: ['<%= pkg.distdir %>/*'],
 
         copy : {
             assets: {
@@ -52,7 +64,7 @@ module.exports = function( grunt ){
                     base: "src/app"  //app内的html模板编译到templates内的app.js
                 },
                 src: ['<%= src.tpl.app %>'],
-                dest: ['<%= distdir %>/templates/app.js'],
+                dest: '<%= distdir %>/templates/app.js',
                 module: 'templates.app'
             },
             common: {
@@ -60,7 +72,7 @@ module.exports = function( grunt ){
                     base: "src/common"  //common内的html模板编译到templates内的common.js
                 },
                 src: ['<%= src.tpl.common %>'],
-                dest: ['<%= distdir %>/templates/common.js'],
+                dest: '<%= distdir %>/templates/common.js',
                 module: 'templates.common'
             }
         },
@@ -75,10 +87,85 @@ module.exports = function( grunt ){
             },
             index: {
                 src: ['src/index.html'],
-                dest: ['<%= distdir %>/index.html'],
+                dest: '<%= distdir %>/index.html',
                 options: {
                     process: true
                 }
+            },
+            angular: {
+                src: ['vendor/angular/angular.js','vendor/angular/angular-route.js'],
+                dest:'<%= distdir %>/angular.js'
+            },
+            mongo: {
+                src: ['vendor/mongolab/*.js'],
+                dest: '<%= distdir %>/mongolab.js'
+            },
+            bootstrap: {
+                src: ['vendor/angular-ui/bootstrap/*.js'],
+                dest: '<%= distdir %>/bootstrap.js'
+            },
+            jquery: {
+                src: ['vendor/jquery/*.js'],
+                dest: '<%= distdir %>/jquery.js'
+            }
+        },
+
+        ugnify: {
+            dist:{
+                options: {
+                    banner: "<%= banner %>"
+                },
+                src:['<%= src.js %>' ,'<%= src.jsTpl %>'],
+                dest:'<%= distdir %>/<%= pkg.name %>.js'
+            },
+            angular: {
+                src:['<%= concat.angular.src %>'],
+                dest: '<%= distdir %>/angular.js'
+            },
+            mongo: {
+                src:['vendor/mongolab/*.js'],
+                dest: '<%= distdir %>/mongolab.js'
+            },
+            bootstrap: {
+                src:['vendor/angular-ui/bootstrap/*.js'],
+                dest: '<%= distdir %>/bootstrap.js'
+            },
+            jquery: {
+                src:['vendor/jquery/*.js'],
+                dest: '<%= distdir %>/jquery.js'
+            }
+        },
+        recess: {
+            build: {
+                files: {
+                    '<%= distdir %>/<%= pkg.name %>.css': ['<%= src.less %>']
+                },
+                options: {
+                    compile: true
+                }
+            },
+            min: {
+                files: {
+                    '<%= distdir %>/<%= pkg.name %>.css': ['<%= src.less %>']
+                },
+                options: {
+                    compress: true
+                }
+            }
+        },
+        jshint: {
+            files: ['gruntFile.js','<%= src.js %>','<%= src.jsTpl %>','<%= src.specs %>','<%= src.scenarios %>'],
+            options: {
+                curly: true,
+                eqeqeq: true,
+                immed: true,
+                latedef: true,
+                newcap: true,
+                noarg: true,
+                sub: true,
+                boss: true,
+                eqnull: true,
+                globals: {}
             }
         }
     });
