@@ -11,7 +11,8 @@ module.exports = function( grunt ){
     grunt.loadNpmTasks('grunt-karma');
     grunt.loadNpmTasks('grunt-recess');
 
-    grunt.registerTask('default',['jshint','clean','concat']);
+    grunt.registerTask('default', ['jshint','build','karma:unit']);
+    grunt.registerTask('build', ['clean','html2js','concat','recess:build','copy:assets']);
 
     var karmaConfig = function(configFile, customOptions) {
         var options = { configFile: configFile, keepalive: true };
