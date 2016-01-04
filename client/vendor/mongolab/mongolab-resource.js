@@ -31,10 +31,10 @@ angular.module('mongolabResource',[]).factory('mongolabResource',['MONGOLAB_CONF
                         result = new Resource(response.data[i]);
                     }
                 }
-                scb(result,response.status,response.headers,response,config);
+                scb(result, response.status, response.headers, response.config);
                 return result;
             },function(response){
-                ecb(undefined,response,status,response.headers,response.config);
+                ecb(undefined, response.status, response.headers, response.config);
                 return undefined;
             });
         };
@@ -43,27 +43,27 @@ angular.module('mongolabResource',[]).factory('mongolabResource',['MONGOLAB_CONF
             angular.extend(this,data);
         };
 
-        Resource.query = function(queryJson,successcb,errorcb){
+        Resource.query = function(queryJson, successcb, errorcb){
             var params = angular.isObject(queryJson)?{q:JSON.stringify(queryJson)}:{};
             var httpPromise = $http.get(url,{params: angular.extend({},defaultParams,params)});
-            return thenFactoryMethod(httpPromise,successcb,errorcb,true);
+            return thenFactoryMethod(httpPromise, successcb, errorcb, true);
         };
 
-        Resource.all = function(successcd,errorcb){
-            return Resource.query({},successcd,errorcb);
+        Resource.all = function(successcd, errorcb){
+            return Resource.query({}, successcd, errorcb);
         };
 
-        Resource.getById = function(id,successcd,errorcb){
-            var httpPromise = $http.get(url+'/'+id,{params: defaultParams});
-            return thenFactoryMethod(httpPromise,successcd,errorcb);
+        Resource.getById = function(id, successcd, errorcb){
+            var httpPromise = $http.get(url + '/' + id, {params: defaultParams});
+            return thenFactoryMethod(httpPromise, successcd, errorcb);
         };
 
-        Resource.getByIds = function(ids,successcb,errorcb){
+        Resource.getByIds = function(ids, successcb, errorcb){
             var qin = [];
-            angular.forEach(ids,function(id){
-                qin.push({$oid:id});
+            angular.forEach(ids, function(id){
+                qin.push({$oid : id});
             });
-            return Resource.query(qin,successcb,errorcb);
+            return Resource.query({_id:{$in:qin}}, successcb, errorcb);
         };
 
         //instance methods
@@ -73,23 +73,27 @@ angular.module('mongolabResource',[]).factory('mongolabResource',['MONGOLAB_CONF
             }
         };
 
-        Resource.prototype.$save = function(successcb,errorcb){  //save this
-            var httpPromise = $http.post(url,this,{params:defaultParams});
+        Resource.prototype.$save = function(successcb, errorcb){  //save this
+            var httpPromise = $http.post(url, this, {params:defaultParams});
+            return thenFactoryMethod(httpPromise, successcb, errorcb);
+        };
+
+        Resource.prototype.$update = function(successcb, errorcb){
+            var httpPromise = $http.put(url + '/' + this.$id(), angular.extend({},this,{_id:undefined},{params:defaultParams}));
             return thenFactoryMethod(httpPromise,successcb,errorcb);
         };
 
-        Resource.prototype.$update = function(successcb,errorcb){
-            var httpPromise = $http.put(url+'/'+this.$id(),{params: defaultParams});
-            return thenFactoryMethod(httpPromise,successcb,errorcb);
+        Resource.prototype.$remove = function(successcb, errorcb){
+            var httpPromise = $http['delete'](url + '/' + this.$id(),{ params: defaultParams });
+            return thenFactoryMethod(httpPromise, successcb,errorcb);
         };
 
-        Resource.prototype.$delete = function(successcb,errorcb){
-            var httpPromise = $http['delete'](url+'/'+this.$id(),{params: defaultParams});
-            return thenFactoryMethod(httpPromise,successcb,errorcb);
-        };
-
-        Resource.prototype.$saveOrUpdate = function(savecb,updatecb,errorsavecb,errorUpdatecb){
-
+        Resource.prototype.$saveOrUpdate = function(savecb, updatecb, errorsavecb, errorUpdatecb){
+            if(this.$id()){
+                return this.$update(updatecb,errorUpdatecb);
+            } else {
+                return this.$save(savecb,errorsavecb);
+            }
         };
 
     }
