@@ -9,7 +9,7 @@ module.exports = {
 
     security: {
         dbName: "ffandii",  //the name of database that contains the security information
-        userCollection: "users"  //the name of the collection that contains the user information
+        usersCollection: "users"  //the name of the collection that contains the user information
     },
 
     server: {
