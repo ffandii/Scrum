@@ -11,7 +11,7 @@ module.exports = function( grunt ) {
             tasks: 'default timestamp'
         },
         jshint: {
-            files: ['gruntFile.js'],
+            files: ['gruntFile.js','lib/*.js'],
             options: {
                 curly: true,
                 eqeqeq: true,
