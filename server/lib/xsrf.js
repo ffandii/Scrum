@@ -26,7 +26,7 @@ module.exports = function(req, res, next){
         case 'OPTIONS':
             break;
         default :
-            if ( token != requestToken ){
+            if ( token !== requestToken ){
                 return res.send(403);
             }
     }
