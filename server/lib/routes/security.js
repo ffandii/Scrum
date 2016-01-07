@@ -13,7 +13,7 @@ exports.addRoutes = function(app, security){
         })
     });
 
-    security.get('/admin-user', function(req, res){
+    app.get('/admin-user', function(req, res){
         security.adminRequired(req, res, function(){
             security.sendCurrentUser(req, res);
         });
