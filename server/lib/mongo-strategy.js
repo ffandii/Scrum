@@ -1,7 +1,7 @@
 var util = require('util');
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
-var rest = require('rest');
+var rest = require('request');
 
 function MongoDBStrategy(dbUrl, apiKey, dbName, collection){
     this.dbUrl = dbUrl;
