@@ -96,6 +96,8 @@ angular.module('mongolabResource',[]).factory('mongolabResource',['MONGOLAB_CONF
             }
         };
 
+        return Resource;
+
     }
 
     return MongolabResourceFactory;
