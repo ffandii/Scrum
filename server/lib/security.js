@@ -47,7 +47,7 @@ var security = {
         res.end();
     },
     login: function(req,res,next){
-        function authenticationFailed (error, user, info){
+        function authenticationFailed (error, user, info){  //if authenticationFailed get called, then authentication succeeds
             if(error) {
                 return next(error);
             }
