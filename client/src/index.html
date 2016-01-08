@@ -1,10 +1,15 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" ng-app="app">
+<title>Scrum demo</title>
 <head>
-    <meta charset="UTF-8">
-    <title></title>
+    <link rel="stylesheet" type="text/css" href="/static/<%= grunt.config.get('pkg.name') %>.css">
+    <script type="text/javascript" src="/static/jquery.js"></script>
+    <script type="text/javascript" src="/static/angular.js"></script>
+    <script type="text/javascript" src="/static/mongolab.js"></script>
+    <script type="text/javascript" src="/static/bootstrap.js"></script>
+    <script type="text/javascript" src="/static/<%= grunt.config.get('pkg.name') %>.js"></script>
 </head>
-<body>
+<body ng-controller="APPCtrl">
 
 </body>
 </html>
