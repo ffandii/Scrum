@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<html lang="en" ng-app="app">
+<html lang="zn-CN" ng-app="app">
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
 <title>Scrum demo</title>
 <head>
     <link rel="stylesheet" type="text/css" href="/static/<%= grunt.config.get('pkg.name') %>.css">
@@ -10,6 +12,6 @@
     <script type="text/javascript" src="/static/<%= grunt.config.get('pkg.name') %>.js"></script>
 </head>
 <body ng-controller="AppCtrl">
-
+<div ng-include="'header.tpl.html'"></div>
 </body>
 </html>
