@@ -1,10 +1,23 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title></title>
-</head>
-<body>
-
-</body>
-</html>
+<form name="form" novalidate class="login-form">
+    <div class="modal-header">
+        <h4>登录</h4>
+    </div>
+    <div class="modal-body">
+        <div class="alert alert-warning" ng-show="authReason">
+            {{authReason}}
+        </div>
+        <div class="alert alert-error" ng-show="authError">
+            {{authError}}
+        </div>
+        <div class="alert alert-info">请输入你的登录信息</div>
+        <label>邮箱</label>
+        <input name="login" type="email" ng-model="user.email" required autofocus/>
+        <label>密码</label>
+        <input name="pass" type="password" ng-model="user.password" required/>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-primary login" ng-disabled="form.$invalid">登录</button>
+        <button class="btn clear">清除</button>
+        <button class="btn btn-warning cancel">取消</button>
+    </div>
+</form>
