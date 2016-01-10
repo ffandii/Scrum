@@ -1,3 +1,22 @@
-/**
- * Created by Administrator on 2016/1/10 0010.
- */
+angular.module('services.localizedMessages',[])
+    .factory('localizedMessages',['$interpolate','I18N_MESSAGES'],function( $interpolate, i18nmessages ){
+
+        var handleNotFound = function( msg, msgKey ){
+            return msg || '?' + msgKey + '?';
+        };
+
+        return {
+            get : function( msgKey, interpolateParams ){
+                
+                var msg = i18nmessages[msgKey];
+
+                if(msg){
+                    return $interpolate(msg)(interpolateParams);
+                } else {
+                    return handleNotFound(msg, msgKey);
+                }
+
+            }
+        };
+
+    });
