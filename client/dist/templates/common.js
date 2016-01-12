@@ -1,4 +1,4 @@
-angular.module('templates.common', ['security/login/form.tpl.html']);
+angular.module('templates.common', ['security/login/form.tpl.html', 'security/login/toolbar.tpl.html']);
 
 angular.module("security/login/form.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("security/login/form.tpl.html",
@@ -25,4 +25,24 @@ angular.module("security/login/form.tpl.html", []).run(["$templateCache", functi
     "        <button class=\"btn btn-warning cancel\">取消</button>\n" +
     "    </div>\n" +
     "</form>");
+}]);
+
+angular.module("security/login/toolbar.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("security/login/toolbar.tpl.html",
+    "<ul class=\"nav pull-right\">\n" +
+    "    <li class=\"divider-vertical\"></li>\n" +
+    "    <li ng-show=\"isAuthenticated()\">\n" +
+    "        <a href=\"#\">{{currentUser.firstName}} {{currentUser.lastName}}</a>\n" +
+    "    </li>\n" +
+    "    <li ng-show=\"isAuthenticated()\" class=\"logout\">\n" +
+    "        <form class=\"navbar-form\">\n" +
+    "            <button class=\"btn logout\">退出</button>\n" +
+    "        </form>\n" +
+    "    </li>\n" +
+    "    <li ng-hide=\"false\" class=\"login\">\n" +
+    "        <form class=\"navbar-form\">\n" +
+    "            <button class=\"btn login\">登录</button>\n" +
+    "        </form>\n" +
+    "    </li>\n" +
+    "</ul>");
 }]);

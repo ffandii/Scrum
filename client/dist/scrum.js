@@ -1,4 +1,4 @@
-/* scrum - v 0.0.1 - 2016-01-10 
+/* scrum - v 0.0.1 - 2016-01-12 
 https://github.com/ffandii/Scrum 
  * Copyright (c) 2016 ffandii 
 */
@@ -9,7 +9,7 @@ https://github.com/ffandii/Scrum
 angular.module('app',[
 
     'ngRoute',
-
+    'security',
     'templates.app',
     'templates.common'
 
@@ -43,6 +43,9 @@ angular.module('app').controller('AppCtrl', function($scope){
 
 });
 
+angular.module('security',[
+    'security.login'
+]);
 angular.module('security.login.form', ['services.localizedMessages'])
 
     .controller('LoginFormController', ['$scope', 'localizedMessages', function( $scope, localizedMessages ){
@@ -55,6 +58,33 @@ angular.module('security.login.form', ['services.localizedMessages'])
 
         //the reason that we are being asked to login, for instance , because we tried to access something to which we are not authorized now
         $scope.authReason = localizedMessages.get('login.reason.notAuthorized');
+
+    }]);
+angular.module('security.login', ['security.login.form', 'security.login.toolbar']);
+angular.module('security.login.toolbar',[])
+
+//the login toolToolbar directive is a reusable widget that can show login or logout button
+//and information the current authenticated user
+
+.directive('loginToolbar', ['security', function(security){
+
+       var directive = {
+           templateUrl : "security/login/toolbar.tpl.html",
+           restrict : "E",
+           replace : true,
+           scope : true,  //继承自己的父作用域还是创建一个独立的作用域
+           link : function($scope, $element, $attrs, $controller){
+               $scope.isAuthenticated = security.isAuthenticated;
+               $scope.login = security.showLogin;
+               $scope.logout = security.logout;
+               $scope.$watch(function(){
+                   return security.currentUser;
+               }, function( currentUser ){
+                   $scope.currentUser = currentUser;
+               });
+           }
+
+       };
 
     }]);
 angular.module('services.localizedMessages',[])
@@ -86,20 +116,20 @@ angular.module("header.tpl.html", []).run(["$templateCache", function($templateC
     "<div class=\"navbar\">\n" +
     "    <div class=\"navbar-inner\">\n" +
     "        <a class=\"brand\">Scrum</a>\n" +
-    "        <ul class=\"nav\">\n" +
-    "            <li><a href=\"#\">当前项目</a></li>\n" +
+    "        <ul class=\"nav\" ng-class=\"false\">\n" +
+    "            <li><a href=\"#\">当前的项目</a></li>\n" +
     "        </ul>\n" +
-    "        <ul class=\"nav\">\n" +
+    "        <ul class=\"nav\" ng-show=\"false\">\n" +
     "            <li><a href=\"#\">我的项目</a></li>\n" +
     "            <li class=\"dropdown\">\n" +
-    "                <a id=\"adminmenu\" type=\"button\" class=\"dropdown-toggle\">管理<b class=\"caret\"></b></a>\n" +
+    "                <a id=\"adminmenu\" type=\"button\" class=\"dropdown-toggle\">管理员<b class=\"caret\"></b></a>\n" +
     "                <ul class=\"dropdown-menu\" role=\"menu\" aria-labelledby=\"adminmenu\">\n" +
     "                    <li><a tabindex=\"-1\" href=\"#\">管理项目</a></li>\n" +
     "                    <li><a tabindex=\"-1\" href=\"#\">管理用户</a></li>\n" +
     "                </ul>\n" +
     "            </li>\n" +
     "        </ul>\n" +
-    "        <ul class=\"nav pull-right\">\n" +
+    "        <ul class=\"nav pull-right\" ng-show=\"false\">\n" +
     "            <li class=\"divider-vertical\"></li>\n" +
     "            <li><a href=\"#\"><img src=\"/static/img/spinner.gif\"/></a></li>\n" +
     "        </ul>\n" +
@@ -107,7 +137,7 @@ angular.module("header.tpl.html", []).run(["$templateCache", function($templateC
     "</div>");
 }]);
 
-angular.module('templates.common', ['security/login/form.tpl.html']);
+angular.module('templates.common', ['security/login/form.tpl.html', 'security/login/toolbar.tpl.html']);
 
 angular.module("security/login/form.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("security/login/form.tpl.html",
@@ -134,4 +164,24 @@ angular.module("security/login/form.tpl.html", []).run(["$templateCache", functi
     "        <button class=\"btn btn-warning cancel\">取消</button>\n" +
     "    </div>\n" +
     "</form>");
+}]);
+
+angular.module("security/login/toolbar.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("security/login/toolbar.tpl.html",
+    "<ul class=\"nav pull-right\">\n" +
+    "    <li class=\"divider-vertical\"></li>\n" +
+    "    <li ng-show=\"isAuthenticated()\">\n" +
+    "        <a href=\"#\">{{currentUser.firstName}} {{currentUser.lastName}}</a>\n" +
+    "    </li>\n" +
+    "    <li ng-show=\"isAuthenticated()\" class=\"logout\">\n" +
+    "        <form class=\"navbar-form\">\n" +
+    "            <button class=\"btn logout\">退出</button>\n" +
+    "        </form>\n" +
+    "    </li>\n" +
+    "    <li ng-hide=\"false\" class=\"login\">\n" +
+    "        <form class=\"navbar-form\">\n" +
+    "            <button class=\"btn login\">登录</button>\n" +
+    "        </form>\n" +
+    "    </li>\n" +
+    "</ul>");
 }]);
