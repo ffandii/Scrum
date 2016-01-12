@@ -5,7 +5,7 @@
 angular.module('app',[
 
     'ngRoute',
-
+    'security',
     'templates.app',
     'templates.common'
 
