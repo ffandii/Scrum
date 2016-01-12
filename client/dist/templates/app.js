@@ -22,6 +22,7 @@ angular.module("header.tpl.html", []).run(["$templateCache", function($templateC
     "            <li class=\"divider-vertical\"></li>\n" +
     "            <li><a href=\"#\"><img src=\"/static/img/spinner.gif\"/></a></li>\n" +
     "        </ul>\n" +
+    "        <login-toolbar></login-toolbar>\n" +
     "    </div>\n" +
     "</div>");
 }]);

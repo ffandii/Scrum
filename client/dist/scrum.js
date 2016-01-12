@@ -66,27 +66,20 @@ angular.module('security.login.toolbar',[])
 //the login toolToolbar directive is a reusable widget that can show login or logout button
 //and information the current authenticated user
 
-.directive('loginToolbar', ['security', function(security){
+    .directive('loginToolbar', function(){
 
-       var directive = {
-           templateUrl : "security/login/toolbar.tpl.html",
-           restrict : "E",
-           replace : true,
-           scope : true,  //继承自己的父作用域还是创建一个独立的作用域
-           link : function($scope, $element, $attrs, $controller){
-               $scope.isAuthenticated = security.isAuthenticated;
-               $scope.login = security.showLogin;
-               $scope.logout = security.logout;
-               $scope.$watch(function(){
-                   return security.currentUser;
-               }, function( currentUser ){
-                   $scope.currentUser = currentUser;
-               });
-           }
+        var directive = {
+            templateUrl : "security/login/toolbar.tpl.html",
+            restrict : "E",
+            replace : true,
+            scope : true  //继承自己的父作用域还是创建一个独立的作用域
 
-       };
 
-    }]);
+        };
+
+        return directive;
+
+    });
 angular.module('services.localizedMessages',[])
     .factory('localizedMessages',['$interpolate','I18N_MESSAGES'],function( $interpolate, i18nmessages ){
 
@@ -133,6 +126,7 @@ angular.module("header.tpl.html", []).run(["$templateCache", function($templateC
     "            <li class=\"divider-vertical\"></li>\n" +
     "            <li><a href=\"#\"><img src=\"/static/img/spinner.gif\"/></a></li>\n" +
     "        </ul>\n" +
+    "        <login-toolbar></login-toolbar>\n" +
     "    </div>\n" +
     "</div>");
 }]);
@@ -170,10 +164,10 @@ angular.module("security/login/toolbar.tpl.html", []).run(["$templateCache", fun
   $templateCache.put("security/login/toolbar.tpl.html",
     "<ul class=\"nav pull-right\">\n" +
     "    <li class=\"divider-vertical\"></li>\n" +
-    "    <li ng-show=\"isAuthenticated()\">\n" +
-    "        <a href=\"#\">{{currentUser.firstName}} {{currentUser.lastName}}</a>\n" +
+    "    <li ng-show=\"true\">\n" +
+    "        <a href=\"#\">樊迪</a>\n" +
     "    </li>\n" +
-    "    <li ng-show=\"isAuthenticated()\" class=\"logout\">\n" +
+    "    <li ng-show=\"true\" class=\"logout\">\n" +
     "        <form class=\"navbar-form\">\n" +
     "            <button class=\"btn logout\">退出</button>\n" +
     "        </form>\n" +

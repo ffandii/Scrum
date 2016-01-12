@@ -31,10 +31,10 @@ angular.module("security/login/toolbar.tpl.html", []).run(["$templateCache", fun
   $templateCache.put("security/login/toolbar.tpl.html",
     "<ul class=\"nav pull-right\">\n" +
     "    <li class=\"divider-vertical\"></li>\n" +
-    "    <li ng-show=\"isAuthenticated()\">\n" +
-    "        <a href=\"#\">{{currentUser.firstName}} {{currentUser.lastName}}</a>\n" +
+    "    <li ng-show=\"true\">\n" +
+    "        <a href=\"#\">樊迪</a>\n" +
     "    </li>\n" +
-    "    <li ng-show=\"isAuthenticated()\" class=\"logout\">\n" +
+    "    <li ng-show=\"true\" class=\"logout\">\n" +
     "        <form class=\"navbar-form\">\n" +
     "            <button class=\"btn logout\">退出</button>\n" +
     "        </form>\n" +
