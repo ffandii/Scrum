@@ -20,9 +20,9 @@ angular.module("security/login/form.tpl.html", []).run(["$templateCache", functi
     "        <input name=\"pass\" type=\"password\" ng-model=\"user.password\" required/>\n" +
     "    </div>\n" +
     "    <div class=\"modal-footer\">\n" +
-    "        <button class=\"btn btn-primary login\" ng-disabled=\"form.$invalid\">登录</button>\n" +
-    "        <button class=\"btn clear\">清除</button>\n" +
-    "        <button class=\"btn btn-warning cancel\">取消</button>\n" +
+    "        <button class=\"btn btn-primary login\" ng-click=\"login()\" ng-disabled=\"form.$invalid\">登录</button>\n" +
+    "        <button class=\"btn clear\" ng-click=\"clearForm()\">清除</button>\n" +
+    "        <button class=\"btn btn-warning cancel\" ng-click=\"cancelLogin()\">取消</button>\n" +
     "    </div>\n" +
     "</form>");
 }]);
@@ -31,17 +31,17 @@ angular.module("security/login/toolbar.tpl.html", []).run(["$templateCache", fun
   $templateCache.put("security/login/toolbar.tpl.html",
     "<ul class=\"nav pull-right\">\n" +
     "    <li class=\"divider-vertical\"></li>\n" +
-    "    <li ng-show=\"true\">\n" +
-    "        <a href=\"#\">樊迪</a>\n" +
+    "    <li ng-show=\"isAuthenticated()\">\n" +
+    "        <a href=\"#\">{{currentUser.firstName}} {{currentUser.lastName}}</a>\n" +
     "    </li>\n" +
-    "    <li ng-show=\"true\" class=\"logout\">\n" +
+    "    <li ng-show=\"isAuthenticated()\" class=\"logout\">\n" +
     "        <form class=\"navbar-form\">\n" +
-    "            <button class=\"btn logout\">退出</button>\n" +
+    "            <button class=\"btn logout\" ng-click=\"logout()\">退出</button>\n" +
     "        </form>\n" +
     "    </li>\n" +
-    "    <li ng-hide=\"false\" class=\"login\">\n" +
+    "    <li ng-hide=\"isAuthenticated()\" class=\"login\">\n" +
     "        <form class=\"navbar-form\">\n" +
-    "            <button class=\"btn login\">登录</button>\n" +
+    "            <button class=\"btn login\" ng-click=\"login()\">登录</button>\n" +
     "        </form>\n" +
     "    </li>\n" +
     "</ul>");
