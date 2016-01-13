@@ -5,6 +5,7 @@
 angular.module('app',[
 
     'ngRoute',
+    'services.localizedMessages',
     'security',
     'templates.app',
     'templates.common'
