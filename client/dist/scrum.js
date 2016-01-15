@@ -1,4 +1,4 @@
-/* scrum - v 0.0.1 - 2016-01-13 
+/* scrum - v 0.0.1 - 2016-01-15 
 https://github.com/ffandii/Scrum 
  * Copyright (c) 2016 ffandii 
 */
@@ -224,7 +224,7 @@ angular.module('security.retryQueue', [])
 
             retryAll : function(){
                 while(service.hasMore()){
-                    retryQueue.shift.retry();
+                    retryQueue.shift().retry();  //shift没有写成一个函数，导致错误
                 }
             }
 
@@ -328,7 +328,7 @@ angular.module('security.service',[
                 if(service.isAuthenticated()){
                     return $q.when(service.currentUser);  //传值服务
                 } else {
-                    return $http.get('/currentUser').then(function(response){
+                    return $http.get('/current-user').then(function(response){  //这里把路由写错了
                         service.currentUser = response.data.user;
                         return service.currentUser;
                     });
@@ -338,7 +338,7 @@ angular.module('security.service',[
             currentUser : null,
 
             isAuthenticated : function(){
-                return !!service.user;
+                return !!service.currentUser;  //currentUser
             },
 
             isAdmin : function(){
@@ -434,12 +434,12 @@ angular.module("security/login/toolbar.tpl.html", []).run(["$templateCache", fun
     "    </li>\n" +
     "    <li ng-show=\"isAuthenticated()\" class=\"logout\">\n" +
     "        <form class=\"navbar-form\">\n" +
-    "            <button class=\"btn logout\" ng-click=\"logout()\">退出</button>\n" +
+    "            <button class=\"btn logout\" ng-click=\"logout()\">Log out</button>\n" +
     "        </form>\n" +
     "    </li>\n" +
     "    <li ng-hide=\"isAuthenticated()\" class=\"login\">\n" +
     "        <form class=\"navbar-form\">\n" +
-    "            <button class=\"btn login\" ng-click=\"login()\">登录</button>\n" +
+    "            <button class=\"btn login\" ng-click=\"login()\">Log in</button>\n" +
     "        </form>\n" +
     "    </li>\n" +
     "</ul>");
