@@ -1,17 +1,19 @@
-/* Global modules */
+/*global module*/
 
-module.exports = function( grunt ) {
+module.exports = function(grunt) {
 
     grunt.loadNpmTasks('grunt-contrib-jshint');
+    grunt.loadNpmTasks('grunt-contrib-nodeunit');
 
-    //project configuration
+    // Project configuration.
     grunt.initConfig({
+        nodeunit: ['test/**/*.js'],
         watch: {
             files: '<config:lint.files>',
             tasks: 'default timestamp'
         },
         jshint: {
-            files: ['gruntFile.js','lib/*.js'],
+            files: ['gruntFile.js', 'server.js', 'lib/*.js', 'test/**/*.js'],
             options: {
                 curly: true,
                 eqeqeq: true,
@@ -23,21 +25,20 @@ module.exports = function( grunt ) {
                 undef: true,
                 boss: true,
                 eqnull: true,
-                globals: {require: false, __dirname: false, console: false,module: false, exports: false}
+                globals: { require: false, __dirname: false, console: false, module: false, exports: false }
             }
         }
     });
 
-    //Default tasks
-    grunt.registerTask('default',['jshint']);
+    // Default task.
+    grunt.registerTask('default', ['jshint','nodeunit']);
 
-    grunt.registerTask('timestamp',function(){
+    grunt.registerTask('timestamp', function() {
         grunt.log.subhead(Date());
     });
 
-    grunt.registerTask('supervise',function(){
+    grunt.registerTask('supervise', function() {
         this.async();
         require('supervisor').run(['server.js']);
     });
-
 };
