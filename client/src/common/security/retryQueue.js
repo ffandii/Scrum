@@ -66,7 +66,7 @@ angular.module('security.retryQueue', [])
 
             retryAll : function(){
                 while(service.hasMore()){
-                    retryQueue.shift.retry();
+                    retryQueue.shift().retry();  //shift没有写成一个函数，导致错误
                 }
             }
 

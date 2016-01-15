@@ -93,7 +93,7 @@ angular.module('security.service',[
                 if(service.isAuthenticated()){
                     return $q.when(service.currentUser);  //传值服务
                 } else {
-                    return $http.get('/currentUser').then(function(response){
+                    return $http.get('/current-user').then(function(response){  //这里把路由写错了
                         service.currentUser = response.data.user;
                         return service.currentUser;
                     });
@@ -103,7 +103,7 @@ angular.module('security.service',[
             currentUser : null,
 
             isAuthenticated : function(){
-                return !!service.user;
+                return !!service.currentUser;  //currentUser
             },
 
             isAdmin : function(){
