@@ -51,8 +51,7 @@ angular.module('app').controller('AppCtrl', function($scope){
 
 });
 
-angular.module('app').controller('HeaderCtrl', ['$scope','security',
-    function ($scope,security) {
+angular.module('app').controller('HeaderCtrl', ['$scope','security', function ($scope,security) {
 
         $scope.isAuthenticated = security.isAuthenticated;
         $scope.isAdmin = security.isAdmin;

@@ -6,7 +6,7 @@
         </ul>
         <ul class="nav" ng-show="isAuthenticated()">
             <li><a href="#">我的项目</a></li>
-            <li class="dropdown">
+            <li class="dropdown" ng-class="{active:true, open:true}">
                 <a id="adminmenu" type="button" class="dropdown-toggle">管理员<b class="caret"></b></a>
                 <ul class="dropdown-menu" role="menu" aria-labelledby="adminmenu">
                     <li><a tabindex="-1" href="#">管理项目</a></li>
