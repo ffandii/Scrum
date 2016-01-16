@@ -2,13 +2,13 @@ angular.module('templates.app', ['header.tpl.html']);
 
 angular.module("header.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("header.tpl.html",
-    "<div class=\"navbar\">\n" +
+    "<div class=\"navbar\" ng-controller=\"HeaderCtrl\">\n" +
     "    <div class=\"navbar-inner\">\n" +
     "        <a class=\"brand\">Scrum</a>\n" +
     "        <ul class=\"nav\" ng-class=\"false\">\n" +
     "            <li><a href=\"#\">当前的项目</a></li>\n" +
     "        </ul>\n" +
-    "        <ul class=\"nav\" ng-show=\"false\">\n" +
+    "        <ul class=\"nav\" ng-show=\"isAuthenticated()\">\n" +
     "            <li><a href=\"#\">我的项目</a></li>\n" +
     "            <li class=\"dropdown\">\n" +
     "                <a id=\"adminmenu\" type=\"button\" class=\"dropdown-toggle\">管理员<b class=\"caret\"></b></a>\n" +

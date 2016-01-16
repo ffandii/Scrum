@@ -36,12 +36,12 @@ angular.module("security/login/toolbar.tpl.html", []).run(["$templateCache", fun
     "    </li>\n" +
     "    <li ng-show=\"isAuthenticated()\" class=\"logout\">\n" +
     "        <form class=\"navbar-form\">\n" +
-    "            <button class=\"btn logout\" ng-click=\"logout()\">Log out</button>\n" +
+    "            <button class=\"btn logout\" ng-click=\"logout()\">退出</button>\n" +
     "        </form>\n" +
     "    </li>\n" +
     "    <li ng-hide=\"isAuthenticated()\" class=\"login\">\n" +
     "        <form class=\"navbar-form\">\n" +
-    "            <button class=\"btn login\" ng-click=\"login()\">Log in</button>\n" +
+    "            <button class=\"btn login\" ng-click=\"login()\">登录</button>\n" +
     "        </form>\n" +
     "    </li>\n" +
     "</ul>");

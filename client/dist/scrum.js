@@ -1,4 +1,4 @@
-/* scrum - v 0.0.1 - 2016-01-15 
+/* scrum - v 0.0.1 - 2016-01-16 
 https://github.com/ffandii/Scrum 
  * Copyright (c) 2016 ffandii 
 */
@@ -39,11 +39,29 @@ angular.module('app').constant('I18N.MESSAGES',{
 
 });
 
+angular.module('app').config(['$routeProvider', '$locationProvider', function ($routeProvider, $locationProvider) {
+    $locationProvider.html5Mode(true);
+}]);
+
+angular.module('app').run(['security',function(security){
+
+    //get the current user when the application starts
+    //in case they are still logged in from a previous session
+    security.requestCurrentUser();
+
+}]);
 
 angular.module('app').controller('AppCtrl', function($scope){
 
 });
 
+angular.module('app').controller('HeaderCtrl', ['$scope','security',
+    function ($scope,security) {
+
+        $scope.isAuthenticated = security.isAuthenticated;
+        $scope.isAdmin = security.isAdmin;
+
+    }]);
 angular.module('security',[
     'security.service',
     'security.interceptor',
@@ -371,13 +389,13 @@ angular.module('templates.app', ['header.tpl.html']);
 
 angular.module("header.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("header.tpl.html",
-    "<div class=\"navbar\">\n" +
+    "<div class=\"navbar\" ng-controller=\"HeaderCtrl\">\n" +
     "    <div class=\"navbar-inner\">\n" +
     "        <a class=\"brand\">Scrum</a>\n" +
     "        <ul class=\"nav\" ng-class=\"false\">\n" +
     "            <li><a href=\"#\">当前的项目</a></li>\n" +
     "        </ul>\n" +
-    "        <ul class=\"nav\" ng-show=\"false\">\n" +
+    "        <ul class=\"nav\" ng-show=\"isAuthenticated()\">\n" +
     "            <li><a href=\"#\">我的项目</a></li>\n" +
     "            <li class=\"dropdown\">\n" +
     "                <a id=\"adminmenu\" type=\"button\" class=\"dropdown-toggle\">管理员<b class=\"caret\"></b></a>\n" +
@@ -434,12 +452,12 @@ angular.module("security/login/toolbar.tpl.html", []).run(["$templateCache", fun
     "    </li>\n" +
     "    <li ng-show=\"isAuthenticated()\" class=\"logout\">\n" +
     "        <form class=\"navbar-form\">\n" +
-    "            <button class=\"btn logout\" ng-click=\"logout()\">Log out</button>\n" +
+    "            <button class=\"btn logout\" ng-click=\"logout()\">退出</button>\n" +
     "        </form>\n" +
     "    </li>\n" +
     "    <li ng-hide=\"isAuthenticated()\" class=\"login\">\n" +
     "        <form class=\"navbar-form\">\n" +
-    "            <button class=\"btn login\" ng-click=\"login()\">Log in</button>\n" +
+    "            <button class=\"btn login\" ng-click=\"login()\">登录</button>\n" +
     "        </form>\n" +
     "    </li>\n" +
     "</ul>");
