@@ -55,8 +55,7 @@ angular.module('app').controller('AppCtrl', function($scope){
 
 });
 
-angular.module('app').controller('HeaderCtrl', ['$scope','security',
-    function ($scope,security) {
+angular.module('app').controller('HeaderCtrl', ['$scope','security', function ($scope,security) {
 
         $scope.isAuthenticated = security.isAuthenticated;
         $scope.isAdmin = security.isAdmin;
@@ -397,7 +396,7 @@ angular.module("header.tpl.html", []).run(["$templateCache", function($templateC
     "        </ul>\n" +
     "        <ul class=\"nav\" ng-show=\"isAuthenticated()\">\n" +
     "            <li><a href=\"#\">我的项目</a></li>\n" +
-    "            <li class=\"dropdown\">\n" +
+    "            <li class=\"dropdown\" ng-class=\"{active:true, open:true}\">\n" +
     "                <a id=\"adminmenu\" type=\"button\" class=\"dropdown-toggle\">管理员<b class=\"caret\"></b></a>\n" +
     "                <ul class=\"dropdown-menu\" role=\"menu\" aria-labelledby=\"adminmenu\">\n" +
     "                    <li><a tabindex=\"-1\" href=\"#\">管理项目</a></li>\n" +
