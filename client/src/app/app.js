@@ -35,7 +35,26 @@ angular.module('app').constant('I18N.MESSAGES',{
 
 });
 
+angular.module('app').config(['$routeProvider', '$locationProvider', function ($routeProvider, $locationProvider) {
+    $locationProvider.html5Mode(true);
+}]);
+
+angular.module('app').run(['security',function(security){
+
+    //get the current user when the application starts
+    //in case they are still logged in from a previous session
+    security.requestCurrentUser();
+
+}]);
 
 angular.module('app').controller('AppCtrl', function($scope){
 
 });
+
+angular.module('app').controller('HeaderCtrl', ['$scope','security',
+    function ($scope,security) {
+
+        $scope.isAuthenticated = security.isAuthenticated;
+        $scope.isAdmin = security.isAdmin;
+
+    }]);
