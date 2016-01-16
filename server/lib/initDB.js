@@ -5,8 +5,8 @@ var initDB = {
         email: "1262623665@qq.com",
         password: "fc4290041992",
         admin: true,
-        firstName: "ffandii",
-        lastName: "user"
+        firstName: "Fan",
+        lastName: "Di"
     },
 
     initialize: function(config){
