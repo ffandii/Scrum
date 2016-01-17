@@ -5,6 +5,7 @@
 angular.module('app',[
 
     'ngRoute',
+    'projectsInfo',
     'services.breadcrumbs',
     'services.localizedMessages',
     'services.httpRequestTracker',
