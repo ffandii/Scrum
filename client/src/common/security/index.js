@@ -1,5 +1,6 @@
 angular.module('security',[
     'security.service',
     'security.interceptor',
-    'security.login'
+    'security.login',
+    'security.authorization'
 ]);

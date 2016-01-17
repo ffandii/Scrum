@@ -118,10 +118,57 @@ angular.module('projectsInfo', [])
 angular.module('projectsInfo').controller('ProjectsInfoCtrl',['$scope',function($scope){
 
 }]);
+angular.module('security.authorization', ['security.service'])
+
+//防止导航到安全受限路由，确保用户不能导航到安全受限路径
+
+.provider('securityAuthorization', {
+
+        requireAdminUser : ['securityAuthorization', function(securityAuthorization){
+            return securityAuthorization.requireAdminUser();
+        }],
+
+        requireAuthenticatedUser : ['securityAuthorization', function(securityAuthorization){
+            return securityAuthorization.requireAuthenticatedUser();
+        }],
+
+        $get : ['security', 'securityRetryQueue', function(security, queue){
+
+            var service = {
+
+                requireAuthenticatedUser : function(){
+                    var promise = security.requestCurrentUser().then(function(userInfo){
+                        if( !security.isAuthenticated() ){
+                            return queue.pushRetryFn('unauthenticated-client', service.requireAuthenticatedUser);
+                        }
+                    });
+                    return promise;
+                },
+
+                requireAdminUser : function(){
+
+                    var promsie = security.requestCurrentUser().then(function(userInfo){
+                        if( !security.isAdmin() ){
+                            return queue.pushRetryFn('unauthorized-client', service.requireAdminUser);
+                        }
+                    });
+
+                    return promise;
+
+                }
+
+            };
+
+            return service;
+
+        }]
+
+    });
 angular.module('security',[
     'security.service',
     'security.interceptor',
-    'security.login'
+    'security.login',
+    'security.authorization'
 ]);
 //注入$httpProvider服务的响应拦截器
 angular.module('security.interceptor', ['security.retryQueue'])
