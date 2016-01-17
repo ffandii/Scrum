@@ -1,4 +1,4 @@
-angular.module('templates.app', ['header.tpl.html']);
+angular.module('templates.app', ['header.tpl.html', 'projectsInfo/list.tpl.html']);
 
 angular.module("header.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("header.tpl.html",
@@ -36,4 +36,14 @@ angular.module("header.tpl.html", []).run(["$templateCache", function($templateC
     "        </ul>\n" +
     "    </div>\n" +
     "</div>");
+}]);
+
+angular.module("projectsInfo/list.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("projectsInfo/list.tpl.html",
+    "<h3>Scrum是一个用于开发和维持复杂产品的框架</h3>\n" +
+    "<p>Scrum是一个用于开发和维持复杂产品的框架，是一个增量的、迭代的开发过程。在这个框架中，整个开发过程由若干个短的迭代周期组成，一个短的\n" +
+    "迭代周期称为一个Sprint，每个Sprint的建议长度是2到4周（互联网产品的研发可以使用1周的Sprint）。在Scrum中，使用产品Backlog来管理产品的需\n" +
+    "求，产品backlog是一个按照商业价值排序的需求列表，列表条目的体现通常为用户故事。Scrum团队总是先开发对客户具有较高价值的需求。在Sprint中，\n" +
+    "Scrum团队从产品backlog中挑选最高优先级的需求进行开发。挑选的需求在Scrum计划会议上进过讨论、分析和估算得到相应的任务列表，我们称它为Sprint\n" +
+    "backlog。在每个迭代结束时，Scrum团队将递交潜在可支付的产品增量，Scrum起源于软件开发项目，但它适用于任何复杂的或者创新性的项目。</p>");
 }]);
