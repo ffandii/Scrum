@@ -1,4 +1,4 @@
-/* scrum - v 0.0.1 - 2016-01-16 
+/* scrum - v 0.0.1 - 2016-01-17 
 https://github.com/ffandii/Scrum 
  * Copyright (c) 2016 ffandii 
 */
@@ -9,7 +9,9 @@ https://github.com/ffandii/Scrum
 angular.module('app',[
 
     'ngRoute',
+    'services.breadcrumbs',
     'services.localizedMessages',
+    'services.httpRequestTracker',
     'security',
     'templates.app',
     'templates.common'
@@ -40,7 +42,10 @@ angular.module('app').constant('I18N.MESSAGES',{
 });
 
 angular.module('app').config(['$routeProvider', '$locationProvider', function ($routeProvider, $locationProvider) {
+                                        //html5模式 http://locahost/mypath..
     $locationProvider.html5Mode(true);
+                                        //hashbang模式 http://locahost#/mypath...
+    $routeProvider.otherwise({redirect : '/projectsInfo'});  //路由不匹配时重定向到projectsinfo
 }]);
 
 angular.module('app').run(['security',function(security){
@@ -55,10 +60,34 @@ angular.module('app').controller('AppCtrl', function($scope){
 
 });
 
-angular.module('app').controller('HeaderCtrl', ['$scope','security', function ($scope,security) {
+angular.module('app').controller('HeaderCtrl', ['$scope','$location', '$route', 'security', 'breadcrumbs', 'httpRequestTracker',
+    function ($scope, $route, $location, security, breadcrumbs, httpRequestTracker) {
+
+        $scope.location = $location;
+        $scope.breadcrumbs = breadcrumbs;
 
         $scope.isAuthenticated = security.isAuthenticated;
         $scope.isAdmin = security.isAdmin;
+
+        $scope.home = function(){
+
+            if( security.isAuthenticated() ){
+                $location.path('/dashboard');
+            } else {
+                $location.path('/projectsInfo');
+            }
+
+        };
+
+        $scope.isNavBarActive = function(navBarPath){
+            return navBarPath === breadcrumbs.getFirst().name;
+        };
+
+        $scope.hasPendingRequests = function() {
+            return httpRequestTracker.hasPendingRequests();
+        };
+
+        $scope.isAdminOpen = false;
 
     }]);
 angular.module('security',[
@@ -367,6 +396,58 @@ angular.module('security.service',[
         return service;
 
     }]);
+//面包屑导航
+
+angular.module('services.breadcrumbs',[])
+
+    .factory('breadcrumbs',['$rootScope','$location',function($rootScope,$location){
+
+        var breadcrumbs = [];
+        var breadcrumbsService = {};
+
+        //we only want to update a breadcrumbs only when a route is actually changed
+        //as $location.path will get updated immediately
+
+        $rootScope.$on('$routeChangeSuccess',function( event, current ){
+
+            var pathElements = $location.path().split('/'), result = [], i;  //path() /admin/users/list
+            var breadcrumbPath = function( index ){
+                return '/' + pathElements.slice(0,index+1).join('/');
+            };
+
+            pathElements.shift();
+            for( i = 0; i < pathElements.length; i++ ){
+                result.push({name : pathElements[i], path: breadcrumbPath(i)});
+            }
+
+            breadcrumbs = result;
+
+        });
+
+        breadcrumbsService.getAll = function(){
+            return breadcrumbs;
+        };
+
+        breadcrumbsService.getFirst = function(){
+            return breadcrumbs[0] || {};
+        };
+
+        return breadcrumbsService;
+
+    }]);
+angular.module('services.httpRequestTracker', [])
+.factory('httpRequestTracker', ['$http', function($http){
+
+        var httpRequestTracker = {};
+        httpRequestTracker.hasPendingRequests = function() {
+
+          return $http.pendingRequests.length > 0;
+            
+        };
+
+        return httpRequestTracker;
+
+    }]);
 angular.module('services.localizedMessages', []).factory('localizedMessages', ['$interpolate', 'I18N.MESSAGES', function ($interpolate, i18nmessages) {
 
     var handleNotFound = function (msg, msgKey) {
@@ -390,25 +471,36 @@ angular.module("header.tpl.html", []).run(["$templateCache", function($templateC
   $templateCache.put("header.tpl.html",
     "<div class=\"navbar\" ng-controller=\"HeaderCtrl\">\n" +
     "    <div class=\"navbar-inner\">\n" +
-    "        <a class=\"brand\">Scrum</a>\n" +
-    "        <ul class=\"nav\" ng-class=\"false\">\n" +
-    "            <li><a href=\"#\">当前的项目</a></li>\n" +
+    "        <a class=\"brand\" ng-click=\"home()\">Scrum</a>\n" +
+    "        <ul class=\"nav\">\n" +
+    "            <li ng-class=\"{active:isNavBarActive('projectsInfo')}\"><a href=\"/projectsInfo\">当前的项目</a></li>\n" +
     "        </ul>\n" +
     "        <ul class=\"nav\" ng-show=\"isAuthenticated()\">\n" +
-    "            <li><a href=\"#\">我的项目</a></li>\n" +
-    "            <li class=\"dropdown\" ng-class=\"{active:true, open:true}\">\n" +
-    "                <a id=\"adminmenu\" type=\"button\" class=\"dropdown-toggle\">管理员<b class=\"caret\"></b></a>\n" +
+    "            <li ng-class=\"{active:isNavBarActive('projects')}\"><a href=\"/projects\">我的项目</a></li>\n" +
+    "            <li class=\"dropdown\" ng-class=\"{active:isNavBarActive('admin'),open : isAdminOpen}\">\n" +
+    "                <a id=\"adminmenu\" type=\"button\" class=\"dropdown-toggle\" ng-click=\"isAdminOpen=!isAdminOpen\">管理<b class=\"caret\"></b></a>\n" +
     "                <ul class=\"dropdown-menu\" role=\"menu\" aria-labelledby=\"adminmenu\">\n" +
-    "                    <li><a tabindex=\"-1\" href=\"#\">管理项目</a></li>\n" +
-    "                    <li><a tabindex=\"-1\" href=\"#\">管理用户</a></li>\n" +
+    "                    <li><a tabindex=\"-1\" href=\"/admin/projects\" ng-click=\"isAdminOpen=false\">管理项目</a></li>\n" +
+    "                    <li><a tabindex=\"-1\" href=\"/admin/users\" ng-click=\"isAdminOpen=false\">管理用户</a></li>\n" +
     "                </ul>\n" +
     "            </li>\n" +
     "        </ul>\n" +
-    "        <ul class=\"nav pull-right\" ng-show=\"false\">\n" +
+    "        <ul class=\"nav pull-right\" ng-show=\"hasPendingRequests()\">\n" +
     "            <li class=\"divider-vertical\"></li>\n" +
     "            <li><a href=\"#\"><img src=\"/static/img/spinner.gif\"/></a></li>\n" +
     "        </ul>\n" +
     "        <login-toolbar></login-toolbar>\n" +
+    "    </div>\n" +
+    "    <div>\n" +
+    "        <ul class=\"breadcrumb\">\n" +
+    "            <li ng-repeat=\"breadcrumb in breadcrumbs.getAll()\">\n" +
+    "                <span class=\"divider\">/</span>\n" +
+    "                <ng-switch on=\"$last\">\n" +
+    "                    <span ng-switch-when=\"true\">{{breadcrumb.name}}</span>\n" +
+    "                    <span ng-switch-default><a href=\"{{breadcrumb.path}}\">{{breadcrumb.name}}</a></span>\n" +
+    "                </ng-switch>\n" +
+    "            </li>\n" +
+    "        </ul>\n" +
     "    </div>\n" +
     "</div>");
 }]);
