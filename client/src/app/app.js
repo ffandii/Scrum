@@ -5,7 +5,9 @@
 angular.module('app',[
 
     'ngRoute',
+    'services.breadcrumbs',
     'services.localizedMessages',
+    'services.httpRequestTracker',
     'security',
     'templates.app',
     'templates.common'
@@ -36,7 +38,10 @@ angular.module('app').constant('I18N.MESSAGES',{
 });
 
 angular.module('app').config(['$routeProvider', '$locationProvider', function ($routeProvider, $locationProvider) {
+                                        //html5模式 http://locahost/mypath..
     $locationProvider.html5Mode(true);
+                                        //hashbang模式 http://locahost#/mypath...
+    $routeProvider.otherwise({redirect : '/projectsInfo'});  //路由不匹配时重定向到projectsinfo
 }]);
 
 angular.module('app').run(['security',function(security){
@@ -51,9 +56,33 @@ angular.module('app').controller('AppCtrl', function($scope){
 
 });
 
-angular.module('app').controller('HeaderCtrl', ['$scope','security', function ($scope,security) {
+angular.module('app').controller('HeaderCtrl', ['$scope','$location', '$route', 'security', 'breadcrumbs', 'httpRequestTracker',
+    function ($scope, $route, $location, security, breadcrumbs, httpRequestTracker) {
+
+        $scope.location = $location;
+        $scope.breadcrumbs = breadcrumbs;
 
         $scope.isAuthenticated = security.isAuthenticated;
         $scope.isAdmin = security.isAdmin;
+
+        $scope.home = function(){
+
+            if( security.isAuthenticated() ){
+                $location.path('/dashboard');
+            } else {
+                $location.path('/projectsInfo');
+            }
+
+        };
+
+        $scope.isNavBarActive = function(navBarPath){
+            return navBarPath === breadcrumbs.getFirst().name;
+        };
+
+        $scope.hasPendingRequests = function() {
+            return httpRequestTracker.hasPendingRequests();
+        };
+
+        $scope.isAdminOpen = false;
 
     }]);

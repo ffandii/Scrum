@@ -1,23 +1,34 @@
 <div class="navbar" ng-controller="HeaderCtrl">
     <div class="navbar-inner">
-        <a class="brand">Scrum</a>
-        <ul class="nav" ng-class="false">
-            <li><a href="#">当前的项目</a></li>
+        <a class="brand" ng-click="home()">Scrum</a>
+        <ul class="nav">
+            <li ng-class="{active:isNavBarActive('projectsInfo')}"><a href="/projectsInfo">当前的项目</a></li>
         </ul>
         <ul class="nav" ng-show="isAuthenticated()">
-            <li><a href="#">我的项目</a></li>
-            <li class="dropdown" ng-class="{active:true, open:true}">
-                <a id="adminmenu" type="button" class="dropdown-toggle">管理员<b class="caret"></b></a>
+            <li ng-class="{active:isNavBarActive('projects')}"><a href="/projects">我的项目</a></li>
+            <li class="dropdown" ng-class="{active:isNavBarActive('admin'),open : isAdminOpen}">
+                <a id="adminmenu" type="button" class="dropdown-toggle" ng-click="isAdminOpen=!isAdminOpen">管理<b class="caret"></b></a>
                 <ul class="dropdown-menu" role="menu" aria-labelledby="adminmenu">
-                    <li><a tabindex="-1" href="#">管理项目</a></li>
-                    <li><a tabindex="-1" href="#">管理用户</a></li>
+                    <li><a tabindex="-1" href="/admin/projects" ng-click="isAdminOpen=false">管理项目</a></li>
+                    <li><a tabindex="-1" href="/admin/users" ng-click="isAdminOpen=false">管理用户</a></li>
                 </ul>
             </li>
         </ul>
-        <ul class="nav pull-right" ng-show="false">
+        <ul class="nav pull-right" ng-show="hasPendingRequests()">
             <li class="divider-vertical"></li>
             <li><a href="#"><img src="/static/img/spinner.gif"/></a></li>
         </ul>
         <login-toolbar></login-toolbar>
+    </div>
+    <div>
+        <ul class="breadcrumb">
+            <li ng-repeat="breadcrumb in breadcrumbs.getAll()">
+                <span class="divider">/</span>
+                <ng-switch on="$last">
+                    <span ng-switch-when="true">{{breadcrumb.name}}</span>
+                    <span ng-switch-default><a href="{{breadcrumb.path}}">{{breadcrumb.name}}</a></span>
+                </ng-switch>
+            </li>
+        </ul>
     </div>
 </div>
