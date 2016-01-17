@@ -7,6 +7,7 @@ angular.module('app',[
     'ngRoute',
     'projectsInfo',
     'services.breadcrumbs',
+    'services.i18nNotifications',
     'services.localizedMessages',
     'services.httpRequestTracker',
     'security',
@@ -53,9 +54,18 @@ angular.module('app').run(['security',function(security){
 
 }]);
 
-angular.module('app').controller('AppCtrl', function($scope){
+angular.module('app').controller('AppCtrl', ['$scope','i18nNotifications','localizedMessages',function($scope, i18nNotifications, localizedMessages){
+    $scope.notifications = i18nNotifications;
 
-});
+    $scope.removeNotification = function(notification){
+        i18nNotifications.remove(notification);
+    };
+
+    $scope.$on('$routeChangeError',function(event, current, previous, rejection){
+        i18nNotifications.pushForCurrentRoute('errors.route.changeError', 'error', {}, {rejection : rejection});
+    });
+
+}]);
 
 angular.module('app').controller('HeaderCtrl', ['$scope','$location', '$route', 'security', 'breadcrumbs', 'httpRequestTracker',
     function ($scope, $route, $location, security, breadcrumbs, httpRequestTracker) {
