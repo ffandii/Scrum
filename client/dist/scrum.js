@@ -11,6 +11,7 @@ angular.module('app',[
     'ngRoute',
     'projectsInfo',
     'services.breadcrumbs',
+    'services.i18nNotifications',
     'services.localizedMessages',
     'services.httpRequestTracker',
     'security',
@@ -57,9 +58,18 @@ angular.module('app').run(['security',function(security){
 
 }]);
 
-angular.module('app').controller('AppCtrl', function($scope){
+angular.module('app').controller('AppCtrl', ['$scope','i18nNotifications','localizedMessages',function($scope, i18nNotifications, localizedMessages){
+    $scope.notifications = i18nNotifications;
 
-});
+    $scope.removeNotification = function(notification){
+        i18nNotifications.remove(notification);
+    };
+
+    $scope.$on('$routeChangeError',function(event, current, previous, rejection){
+        i18nNotifications.pushForCurrentRoute('errors.route.changeError', 'error', {}, {rejection : rejection});
+    });
+
+}]);
 
 angular.module('app').controller('HeaderCtrl', ['$scope','$location', '$route', 'security', 'breadcrumbs', 'httpRequestTracker',
     function ($scope, $route, $location, security, breadcrumbs, httpRequestTracker) {
@@ -466,6 +476,38 @@ angular.module('services.httpRequestTracker', [])
         return httpRequestTracker;
 
     }]);
+angular.module('services.i18nNotifications',['services.notifications','services.localizedMessages']);
+
+angular.module('services.i18nNotifications').factory('i18nNotifications',['localizedMessages', 'notifications', function(localizedMessages, notifications){
+
+    var prepareNotifications = function( msgKey, type, interpolateParams, otherProperties ){
+        return angular.extend({
+            message : localizedMessages.get(msgKey, interpolateParams),
+            type : type
+        },otherProperties);
+    };
+
+    var i18nNotifications = {
+        pushSticky : function(msgKey, type, interpolateParams, otherProperties){
+            return notifications.pushSticky(prepareNotifications(msgKey, type, interpolateParams, otherProperties));
+        },
+        pushForCurrentRoute : function(msgKey, type, interpolateParams, otherProperties){
+            return notifications.pushForCurrentRoute(prepareNotifications(msgKey, type, interpolateParams, otherProperties));
+        },
+        pushForNextRoute : function(msgKey, type, interpolateParams, otherProperties){
+            return notifications.pushForNextRoute(prepareNotifications(msgKey, type, interpolateParams, otherProperties));
+        },
+        getCurrent : function(){
+            return notifications.getCurrent();
+        },
+        remove : function(notification){
+            return notifications.remove(notification);
+        }
+    };
+
+    return i18nNotifications;
+
+}]);
 angular.module('services.localizedMessages', []).factory('localizedMessages', ['$interpolate', 'I18N.MESSAGES', function ($interpolate, i18nmessages) {
 
     var handleNotFound = function (msg, msgKey) {
@@ -483,7 +525,68 @@ angular.module('services.localizedMessages', []).factory('localizedMessages', ['
         }
     };
 }]);
-angular.module('templates.app', ['header.tpl.html', 'projectsInfo/list.tpl.html']);
+angular.module('services.notifications',[])
+.factory('notifications',['$rootScope', function($rootScope){
+
+        var notifications = {
+            'STICKY' : [],
+            'ROUTE_CURRENT' : [],
+            'ROUTE_NEXT' : []
+        };
+
+        var notificationsService = {};
+
+        var addNotification = function(notificationsArray, notificationObj){
+            if(!angular.isObject(notificationObj)){
+                throw new Error("only object can be added to the notification service");
+            }
+
+            notificationsArray.push(notificationObj);
+            return notificationObj;
+        };
+
+        $rootScope.$on('$routeChangeSuccess', function(){
+            notifications.ROUTE_CURRENT.length = 0;
+            notifications.ROUTE_CURRENT = angular.copy(notifications.ROUTE_NEXT);
+            notifications.ROUTE_NEXT.length = 0;
+        });
+
+        notificationsService.getCurrent = function(){
+            return [].concat(notifications.STICKY,notifications.ROUTE_CURRENT);
+        };
+
+        notificationsService.pushSticky = function(notification){
+            return addNotification(notifications.STICKY, notification);
+        };
+
+        notificationsService.pushForCurrentRoute = function(notification){
+            return addNotification(notifications.ROUTE_CURRENT, notification);
+        };
+
+        notificationsService.putForNextRoute = function(notification){
+            return addNotification(notifications.ROUTE_NEXT, notification);
+        };
+
+        notificationsService.remove = function(notification){
+            angular.forEach(notifications, function(notificationsByType){
+                var idx = notificationsByType.indexOf(notification);
+                if( idx > -1 ){
+                    notificationsByType.splice(idx, 1);
+                }
+            });
+        };
+
+        notificationsService.removeAll = function(notification){
+            angular.forEach(notifications, function(notificationsByType){
+                notificationsByType.length = 0;
+            });
+        };
+
+
+        return notificationsService;
+
+    }]);
+angular.module('templates.app', ['header.tpl.html', 'notifications.tpl.html', 'projectsInfo/list.tpl.html']);
 
 angular.module("header.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("header.tpl.html",
@@ -520,6 +623,14 @@ angular.module("header.tpl.html", []).run(["$templateCache", function($templateC
     "            </li>\n" +
     "        </ul>\n" +
     "    </div>\n" +
+    "</div>");
+}]);
+
+angular.module("notifications.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("notifications.tpl.html",
+    "<div ng-class=\"['alert', 'alert-'+notification.type]\" ng-repeat=\"notification in notifications.getCurrent()\">\n" +
+    "    <button class=\"close\" ng-click=\"removeNotification(notification)\">x</button>\n" +
+    "    {{notification.message}}\n" +
     "</div>");
 }]);
 

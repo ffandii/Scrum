@@ -1,4 +1,4 @@
-angular.module('templates.app', ['header.tpl.html', 'projectsInfo/list.tpl.html']);
+angular.module('templates.app', ['header.tpl.html', 'notifications.tpl.html', 'projectsInfo/list.tpl.html']);
 
 angular.module("header.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("header.tpl.html",
@@ -35,6 +35,14 @@ angular.module("header.tpl.html", []).run(["$templateCache", function($templateC
     "            </li>\n" +
     "        </ul>\n" +
     "    </div>\n" +
+    "</div>");
+}]);
+
+angular.module("notifications.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("notifications.tpl.html",
+    "<div ng-class=\"['alert', 'alert-'+notification.type]\" ng-repeat=\"notification in notifications.getCurrent()\">\n" +
+    "    <button class=\"close\" ng-click=\"removeNotification(notification)\">x</button>\n" +
+    "    {{notification.message}}\n" +
     "</div>");
 }]);
 
