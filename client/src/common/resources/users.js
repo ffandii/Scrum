@@ -1,3 +1,13 @@
-/**
- * Created by Administrator on 2016/1/18 0018.
- */
+angular.module('resources.users',['mongolabResource']);
+
+angular.module('resources.users').factory('Users',['mongolabResource', function(mongolabResource){
+
+    var userResource = mongolabResource('users');
+
+    userResource.prototype.getFullName = function(){
+        return this.lastName + " " + this.firstName + " ( "+this.email+ " )";
+    };
+
+    return userResource;
+
+}]);
