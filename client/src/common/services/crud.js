@@ -67,6 +67,6 @@ angular.module('services.crud').factory('crudListMethods',['$location',function(
 
         return mixin;
 
-    }
+    };
 
 }]);
