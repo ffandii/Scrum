@@ -1,4 +1,4 @@
-/* scrum - v 0.0.1 - 2016-01-17 
+/* scrum - v 0.0.1 - 2016-01-18 
 https://github.com/ffandii/Scrum 
  * Copyright (c) 2016 ffandii 
 */
@@ -116,6 +116,71 @@ angular.module('projectsInfo', [])
     }]);
 
 angular.module('projectsInfo').controller('ProjectsInfoCtrl',['$scope',function($scope){
+
+}]);
+angular.module('resources.projects', ['mongolabResource']);
+
+angular.module('resources.projects').factory('projects', ['mongolabResource',function(mongolabResource){
+
+    var projects = mongolabResource('projects');  //productsOwner > scrumMater > devMember
+
+    projects.forUser = function(userId, successcb, errorcb){
+        return projects.query({},successcb,errorcb);
+    };
+
+    projects.prototype.isProductOwner = function(userId){
+        return this.productOwner === userId;
+    };
+
+    projects.prototype.isScrumMaster = function(userId){
+        return this.scrumMaster === userId;
+    };
+
+    projects.prototype.isDevTeamMember = function( userId ){
+        return this.teamMembers.indexOf(userId) >= 0;
+    };
+
+    projects.prototype.canActAsProductOwner = function( userId ){
+        return ! this.isScrumMaster(userId) && ! this.isDevTeamMember(userId);
+    };
+
+    projects.prototype.canActAsScrumMaster = function( userId ){
+        return ! this.isProductOwner(userId);
+    };
+
+    projects.prototype.canActAsDevTeamMember = function( userId ){
+        return ! this.isProductOwner(userId);
+    };
+
+    projects.prototype.getRoles = function( userId ){  //projects中获取当前user的角色
+        var roles = [];
+        if( this.isProductOwner( userId ) ){
+            roles.push('PO');
+        } else {
+            if( this.isScrumMaster(userId) ){
+                roles.push('SM');
+            }
+            if( this.isDevTeamMember(userId)){
+                roles.push('DEV');
+            }
+        }
+        return roles;
+    };
+
+    return projects;
+
+}]);
+angular.module('resources.users',['mongolabResource']);
+
+angular.module('resources.users').factory('Users',['mongolabResource', function(mongolabResource){
+
+    var userResource = mongolabResource('users');
+
+    userResource.prototype.getFullName = function(){
+        return this.lastName + " " + this.firstName + " ( "+this.email+ " )";
+    };
+
+    return userResource;
 
 }]);
 angular.module('security.authorization', ['security.service'])
@@ -510,6 +575,98 @@ angular.module('services.breadcrumbs',[])
         return breadcrumbsService;
 
     }]);
+(function(){
+
+    function crudRouteProvider($routeProvider){
+
+        //this $get noop is because at the moment in angularjs "providers" must provide something
+        //via a $get method
+        //when angularjs has "provide helpers" then this will go away
+        this.$get = angular.noop;
+
+        //in any case the point is that this function is the key part of this "provider helper"
+        //we use it to create routes for CRUD operations.we give it some basic information about the resource and the urls
+        // then it returns our own special routesProvider
+        this.routesFor = function( resourceName, urlPrefix, routePrefix ){
+
+            var baseUrl = resourceName.toLowerCase();
+            var baseRoute = '/' + resourceName.toLowerCase();
+            routePrefix = routePrefix || urlPrefix;
+
+            //prepend the urlPrefix if it is available
+            if( angular.isString(urlPrefix) && urlPrefix !== "" ){
+                baseUrl = urlPrefix + "/" + baseUrl;
+            }
+
+            //prepend the routePrefix if it is provided
+            if( routePrefix !== null &&  routePrefix !== undefined && routePrefix !== ""){
+                baseRoute = '/' + routePrefix + baseRoute;
+            }
+
+            //create the template url for a route to our resource that does the specified operation
+            var templateUrl = function(operation){
+                return baseUrl + '/' + resourceName.toLowerCase() + '-' + operation + '.tpl.html';
+            };
+
+            //create the controller name for a route to our resource that does the specified operation
+            var controllerName = function(operation){
+                return resourceName + operation + 'Ctrl';
+            };
+
+            //this is the object that our 'RouteFor() function returns. it decorate $routeProvider
+            //delegate the when() and otherwise() functions but also exposing some new functions for
+            //creating new crud routes
+
+            var routeBuilder = {
+
+                //create a route that will showing a list of items
+                whenList : function(resolveFns){
+                    routeBuilder.when(baseRoute,{
+                        templateUrl : templateUrl('List'),
+                        controller : controllerName('List'),
+                        resolve : resolveFns
+                    });
+                    return routeBuilder;
+                },
+                //creating a route that will handle creating a new item
+                whenNew : function(resolveFns){
+                    routeBuilder.when(baseRoute+'/new',{
+                        templateUrl : templateUrl('Edit'),
+                        controller : controllerName('Edit'),
+                        resolve : resolveFns
+                    });
+                    return routeBuilder;
+                },
+                //creating a route that will handle editing an existing item
+                whenEdit : function(resolveFns){
+                    routeBuilder.when(baseRoute +'/:itemId',{
+                        template : templateUrl('Edit'),
+                        controller : controllerName('Edit'),
+                        resolve : resolveFns
+                    });
+                    return routeBuilder;
+                },
+                when : function(path,route){
+                    $routeProvider.when(path,route);
+                    return routeBuilder;
+                },
+                otherwise : function(params){
+                    $routeProvider.otherwise(params);
+                    return routeBuilder;
+                },
+                $routeProvider : $routeProvider
+            };
+
+        };
+
+    }
+
+    crudRouteProvider.$injector = ['$routeProvider'];
+
+    angular.module('services.crudRouteProvider',['ngRoute']).provider('crudRoute',crudRouteProvider);
+
+
+})();
 angular.module('services.httpRequestTracker', [])
 .factory('httpRequestTracker', ['$http', function($http){
 
