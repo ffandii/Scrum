@@ -1,8 +1,108 @@
-/* scrum - v 0.0.1 - 2016-01-18 
+/* scrum - v 0.0.1 - 2016-01-19 
 https://github.com/ffandii/Scrum 
  * Copyright (c) 2016 ffandii 
 */
- /**
+ angular.module('admin-projects',[
+    'resources.projects',
+    'resources.users',
+    'services.crud',
+    'security.authorization'
+])
+
+.config(['crudRouteProvider','securityAuthorization',function(crudRouteProvider, securityAuthorization){
+
+        var getAllUsers = ['Projects','Users','$route',function(Projects,Users,$route){
+           return Users.all();
+        }];
+
+        crudRouteProvider.routesFor('Projects','admin')
+            .whenList({
+                projects : ['Projects', function(Projects){ return Projects.all(); }],
+                adminUser : securityAuthorization.requireAdminUser()
+            })
+            .whenNew({
+                projects : ['Projects', function(Projects){ return new Projects(); }],
+                users : getAllUsers,
+                adminUser : securityAuthorization.requireAdminUser()
+            })
+            .whenEdit({
+                projects : ['Projects','Users','$route',function(Projects,Users,$route){ return Projects.getById($route.current.params.itemId); }],
+                users : getAllUsers,
+                adminUser : securityAuthorization.requireAdminUser()
+            });
+
+    }])
+
+.controller('ProjectsListCtrl', ['$scope','crudListMethods','projects',function($scope,crudListMethods,projects){
+
+        $scope.projects = projects;
+        angular.extend($scope,crudListMethods('/admin/projects'));
+
+    }])
+
+.controller('ProjectsEditCtrl',['$scope','$location','i18nNotifications','users', 'project', function($scope,$location,i18nNotifications,users,project){
+
+        $scope.project = project;
+        $scope.users = users;
+        $scope.onSave = function(project){
+            i18nNotifications.pushForNextRoute('crud.project.save.success','success',{ id : project.$id() });
+            $location.path('/admin/projects');
+        };
+
+        $scope.onError = function(project){
+            i18nNotifications.pushForCurrentRoute('crud.project.save.error','error');
+        };
+
+    }])
+
+.controller('TeamMembersController',['$scope',function($scope){
+
+        $scope.project.teamMembers = $scope.project.teamMembers || [];
+        $scope.usersLookup = {};
+        angular.forEach($scope.users, function(value, key){
+            $scopes.usersLookup[value.$id()] = value;
+        });
+
+        $scope.productOwnerCandidates = function(){
+            return $scope.users.filter(function(user){
+                return $scope.usersLookup[user.$id()] && $scope.project.canActAsProductOwner(user.$id());
+            });
+        };
+
+        $scope.scrumMasterCandidates = function(){
+            return $scope.users.filter(function(user){
+                return $scope.usersLookup[user.$id()] && $scope.project.canActAsScrumMaster(user.$id());
+            });
+        };
+
+        $scope.teamMemberCandidates = function(){
+            return $scope.users.filter(function(user){
+                return $scope.usersLookup[user.$id()] && $scope.project.canActAsDevTeamMember(user.$id()) && !$scope.project.isDevTeamMember(user.$id());
+            });
+        };
+
+        $scope.selTeamMember = undefined;
+        $scope.addTeamMember = function(){
+            if($scope.selTeamMember){
+                $scope.project.teamMembers.push($scope.selTeamMember);
+                $scope.selTeamMember = undefined;
+            }
+        };
+
+        $scope.removeTeamMember = function(teamMember){
+            var idx = $scope.project.teamMembers.indexOf(teamMember);
+            if(idx >= 0){
+                $scope.project.teamMembers.splice(idx,1);
+            }
+            if($scope.selTeamMember === teamMember){
+                $scope.selTeamMember = undefined;
+            }
+        };
+
+    }]);
+
+
+/**
  * Created by Administrator on 2016/1/3 0003.
  */
 
@@ -575,6 +675,82 @@ angular.module('services.breadcrumbs',[])
         return breadcrumbsService;
 
     }]);
+angular.module('services.crud', ['services.crudRouteProvider']);
+
+angular.module('services.crud').factory('crudEditMethods',function(){
+
+    return function(itemName, item, formName, successcb, errorcb){
+
+        var mixin = {};
+
+        mixin[itemName] = item;
+        mixin[itemName+'Copy'] = angular.copy(item);
+
+        mixin.save=  function(){
+            this[itemName].$saveOrUpdate(successcb, successcb, errorcb, errorcb);
+        };
+
+        mixin.canSave = function(){
+            return this[formName].$valid && !angular.equals(this[itemName], this[itemName+'Copy']);
+        };
+
+        mixin.revertChanges = function(){
+            this[itemName] = angular.copy(this[itemName+'Copy']);
+        };
+
+        mixin.canRevert = function(){
+            return !angular.equals(this[itemName],this[itemName+'Copy']);
+        };
+
+        mixin.remove = function(){
+            if(this[itemName].$id()){
+                this[itemName].$remove(successcb, errorcb);
+            } else {
+                successcb();
+            }
+        };
+
+        mixin.canRemove = function(){
+            return item.$id();
+        };
+
+        mixin.getCssClasses = function(fieldName){
+            var ngModelController = this[formName][fieldName];
+            return {
+                error : ngModelController.$invalid && ngModelController.$dirty,
+                success : ngModelController.$valid && ngModelController.$dirty
+            };
+        };
+
+        mixin.showError = function(fieldName, error) {
+            return this[formName][fieldName].$error[error];
+        };
+
+        return mixin;
+
+    };
+
+});
+
+angular.module('services.crud').factory('crudListMethods',['$location',function($location){
+
+    return function(pathPrefix){
+
+        var mixin = {};
+
+        mixin['new'] = function(){
+            $location.path(pathPrefix + '/new');
+        };
+
+        mixin['edit'] = function(itemId){
+            $location.path(pathPrefix +'/'+itemId);
+        };
+
+        return mixin;
+
+    };
+
+}]);
 (function(){
 
     function crudRouteProvider($routeProvider){
@@ -656,6 +832,8 @@ angular.module('services.breadcrumbs',[])
                 },
                 $routeProvider : $routeProvider
             };
+
+            return routeBuilder;
 
         };
 

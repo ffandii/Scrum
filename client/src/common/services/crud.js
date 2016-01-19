@@ -45,6 +45,10 @@ angular.module('services.crud').factory('crudEditMethods',function(){
             };
         };
 
+        mixin.showError = function(fieldName, error) {
+            return this[formName][fieldName].$error[error];
+        };
+
         return mixin;
 
     };

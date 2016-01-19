@@ -80,6 +80,8 @@
                 $routeProvider : $routeProvider
             };
 
+            return routeBuilder;
+
         };
 
     }
