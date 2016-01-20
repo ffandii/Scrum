@@ -6,11 +6,13 @@ angular.module('app',[
 
     'ngRoute',
     'projectsInfo',
+    'admin',
     'services.breadcrumbs',
     'services.i18nNotifications',
     'services.localizedMessages',
     'services.httpRequestTracker',
     'security',
+    'directives.crud',
     'templates.app',
     'templates.common'
 
