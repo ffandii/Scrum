@@ -4,8 +4,8 @@ angular.module('admin-projects',[
     'services.crud',
     'security.authorization'
 ])
-
-.config(['crudRouteProvider','securityAuthorization',function(crudRouteProvider, securityAuthorization){
+                                                   //config时后缀加上provider
+.config(['crudRouteProvider','securityAuthorizationProvider',function(crudRouteProvider, securityAuthorization){
 
         var getAllUsers = ['Projects','Users','$route',function(Projects,Users,$route){
            return Users.all();
@@ -14,17 +14,17 @@ angular.module('admin-projects',[
         crudRouteProvider.routesFor('Projects','admin')
             .whenList({
                 projects : ['Projects', function(Projects){ return Projects.all(); }],
-                adminUser : securityAuthorization.requireAdminUser()
+                adminUser : securityAuthorization.requireAdminUser
             })
             .whenNew({
-                projects : ['Projects', function(Projects){ return new Projects(); }],
+                project : ['Projects', function(Projects){ return new Projects(); }],
                 users : getAllUsers,
-                adminUser : securityAuthorization.requireAdminUser()
+                adminUser : securityAuthorization.requireAdminUser
             })
             .whenEdit({
-                projects : ['Projects','Users','$route',function(Projects,Users,$route){ return Projects.getById($route.current.params.itemId); }],
+                project : ['Projects','Users','$route',function(Projects,Users,$route){ return Projects.getById($route.current.params.itemId); }],
                 users : getAllUsers,
-                adminUser : securityAuthorization.requireAdminUser()
+                adminUser : securityAuthorization.requireAdminUser
             });
 
     }])
