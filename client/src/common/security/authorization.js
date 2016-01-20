@@ -27,7 +27,7 @@ angular.module('security.authorization', ['security.service'])
 
                 requireAdminUser : function(){
 
-                    var promsie = security.requestCurrentUser().then(function(userInfo){
+                    var promise = security.requestCurrentUser().then(function(userInfo){
                         if( !security.isAdmin() ){
                             return queue.pushRetryFn('unauthorized-client', service.requireAdminUser);
                         }

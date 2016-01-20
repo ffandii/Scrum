@@ -11,6 +11,6 @@ angular.module('crudButtons',function(){
                 ' <button type="button" class="btn btn-warning revert" ng-click="revertChanges()" ng-disabled="!canRevert()">撤销更改</button> ' +
                 ' <button type="button" class="btn btn-danger remove" ng-click="remove()" ng-show="canRemove()">删除</button> ' +
             '</div>'
-    }
+    };
 
 });
