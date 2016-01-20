@@ -7,6 +7,14 @@ angular.module('directives.crud.edit', [])
 
         return {
 
+            scope : true,
+            require : "^form",
+            link : function(scope,element,attrs,form){
+
+
+
+            }
+
         };
 
     }]);
