@@ -56,7 +56,7 @@ angular.module('admin-projects',[
         $scope.project.teamMembers = $scope.project.teamMembers || [];
         $scope.usersLookup = {};
         angular.forEach($scope.users, function(value, key){
-            $scopes.usersLookup[value.$id()] = value;
+            $scope.usersLookup[value.$id()] = value;
         });
 
         $scope.productOwnerCandidates = function(){
