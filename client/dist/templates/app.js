@@ -1,4 +1,75 @@
-angular.module('templates.app', ['header.tpl.html', 'notifications.tpl.html', 'projectsInfo/list.tpl.html']);
+angular.module('templates.app', ['admin/projects/projects-edit.tpl.html', 'admin/projects/projects-list.tpl.html', 'header.tpl.html', 'notifications.tpl.html', 'projectsInfo/list.tpl.html']);
+
+angular.module("admin/projects/projects-edit.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("admin/projects/projects-edit.tpl.html",
+    "<div class=\"well\"> <!-- projectsEditCtrl服务 -->\n" +
+    "    <form name=\"form\" crud-edit=\"project\">\n" +
+    "        <legend>项目</legend>\n" +
+    "        <div class=\"row-fluid\">\n" +
+    "            <div class=\"span6\">\n" +
+    "                <label>名称</label>\n" +
+    "                <input type=\"text\" name=\"name\" ng-model=\"project.name\" class=\"span10\" required autofocus/>\n" +
+    "                <label>描述</label>\n" +
+    "                <textarea rows=\"10\" cols=\"10\" ng-model=\"project.desc\" class=\"span10\"></textarea>\n" +
+    "            </div>\n" +
+    "            <div class=\"span6\" ng-controller=\"TeamMembersController\">\n" +
+    "                <label>产品拥有者</label>\n" +
+    "                <select class=\"span12\" ng-model=\"project.productOwner\"\n" +
+    "                        ng-options=\"user.$id() as user.getFullName() for user in productOwnerCandidates()\" required>\n" +
+    "                 <option value=\"\">-- 选择 --</option>\n" +
+    "                </select>\n" +
+    "                <label>Scrum管理者</label>\n" +
+    "                <select class=\"span12\" ng-model=\"project.scrumMaster\"\n" +
+    "                        ng-options=\"user.$id() as user.getFullName() for user in scrumMasterCandidates()\" required>\n" +
+    "                    <option value=\"\">-- 选择 --</option>\n" +
+    "                </select>\n" +
+    "                <label>开发团队</label>\n" +
+    "                <table class=\"table table-bordered table-condensed table-striped table-hover\">\n" +
+    "                    <thead>\n" +
+    "                        <tr>\n" +
+    "                            <th>用户</th>\n" +
+    "                            <th>&nbsp;</th>\n" +
+    "                        </tr>\n" +
+    "                    </thead>\n" +
+    "                    <tbody>\n" +
+    "                        <tr ng-repeat=\"userId in project.teamMembers\">\n" +
+    "                            <td>{{usersLookup[userId].getFullName()}}</td>\n" +
+    "                            <td>\n" +
+    "                                <button class=\"btn btn-small\" ng-click=\"removeTeamMember(userId)\" ng-disabled=\"!selTeamMember\"></button>\n" +
+    "                            </td>\n" +
+    "                        </tr>\n" +
+    "                    </tbody>\n" +
+    "                </table>\n" +
+    "            </div>\n" +
+    "        </div>\n" +
+    "        <div class=\"row-fluid\">\n" +
+    "            <hr>\n" +
+    "            <crud-buttons class=\"span12\"></crud-buttons>\n" +
+    "        </div>\n" +
+    "    </form>\n" +
+    "</div>");
+}]);
+
+angular.module("admin/projects/projects-list.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("admin/projects/projects-list.tpl.html",
+    "<table class=\"table table-bordered table-condensed table-striped table-hover\"> <!-- projectsListCtrl服务 -->\n" +
+    "    <thead>\n" +
+    "        <tr>\n" +
+    "            <th>名称</th>\n" +
+    "            <th>描述</th>\n" +
+    "        </tr>\n" +
+    "    </thead>\n" +
+    "    <tbody>\n" +
+    "        <tr ng-repeat=\"project in projects\" ng-click=\"edit(project.$id())\">\n" +
+    "            <td>{{project.name}}</td>\n" +
+    "            <td>{{project.desc}}</td>\n" +
+    "        </tr>\n" +
+    "    </tbody>\n" +
+    "</table>\n" +
+    "<div class=\"well\">\n" +
+    "    <button class=\"btn\" ng-click=\"new()\">新建项目</button>\n" +
+    "</div>");
+}]);
 
 angular.module("header.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("header.tpl.html",

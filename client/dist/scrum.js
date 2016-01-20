@@ -1,15 +1,16 @@
-/* scrum - v 0.0.1 - 2016-01-19 
+/* scrum - v 0.0.1 - 2016-01-20 
 https://github.com/ffandii/Scrum 
  * Copyright (c) 2016 ffandii 
 */
- angular.module('admin-projects',[
+ angular.module('admin',['admin-projects']);
+angular.module('admin-projects',[
     'resources.projects',
     'resources.users',
     'services.crud',
     'security.authorization'
 ])
-
-.config(['crudRouteProvider','securityAuthorization',function(crudRouteProvider, securityAuthorization){
+                                                   //config时后缀加上provider
+.config(['crudRouteProvider','securityAuthorizationProvider',function(crudRouteProvider, securityAuthorization){
 
         var getAllUsers = ['Projects','Users','$route',function(Projects,Users,$route){
            return Users.all();
@@ -18,17 +19,17 @@ https://github.com/ffandii/Scrum
         crudRouteProvider.routesFor('Projects','admin')
             .whenList({
                 projects : ['Projects', function(Projects){ return Projects.all(); }],
-                adminUser : securityAuthorization.requireAdminUser()
+                adminUser : securityAuthorization.requireAdminUser
             })
             .whenNew({
-                projects : ['Projects', function(Projects){ return new Projects(); }],
+                project : ['Projects', function(Projects){ return new Projects(); }],
                 users : getAllUsers,
-                adminUser : securityAuthorization.requireAdminUser()
+                adminUser : securityAuthorization.requireAdminUser
             })
             .whenEdit({
-                projects : ['Projects','Users','$route',function(Projects,Users,$route){ return Projects.getById($route.current.params.itemId); }],
+                project : ['Projects','Users','$route',function(Projects,Users,$route){ return Projects.getById($route.current.params.itemId); }],
                 users : getAllUsers,
-                adminUser : securityAuthorization.requireAdminUser()
+                adminUser : securityAuthorization.requireAdminUser
             });
 
     }])
@@ -60,7 +61,7 @@ https://github.com/ffandii/Scrum
         $scope.project.teamMembers = $scope.project.teamMembers || [];
         $scope.usersLookup = {};
         angular.forEach($scope.users, function(value, key){
-            $scopes.usersLookup[value.$id()] = value;
+            $scope.usersLookup[value.$id()] = value;
         });
 
         $scope.productOwnerCandidates = function(){
@@ -110,11 +111,13 @@ angular.module('app',[
 
     'ngRoute',
     'projectsInfo',
+    'admin',
     'services.breadcrumbs',
     'services.i18nNotifications',
     'services.localizedMessages',
     'services.httpRequestTracker',
     'security',
+    'directives.crud',
     'templates.app',
     'templates.common'
 
@@ -218,6 +221,35 @@ angular.module('projectsInfo', [])
 angular.module('projectsInfo').controller('ProjectsInfoCtrl',['$scope',function($scope){
 
 }]);
+angular.module('directives.crud',['directives.crud.buttons']); //crud指令集
+angular.module('directives.crud.buttons', []);
+
+angular.module('crudButtons',function(){
+
+    return {
+        restrict : 'E',
+        replace : true,
+        template :
+            '<div>' +
+                ' <button type="button" class="btn btn-primary save" ng-disabled="!canSave()" ng-click="save()">保存</button>  ' +
+                ' <button type="button" class="btn btn-warning revert" ng-click="revertChanges()" ng-disabled="!canRevert()">撤销更改</button> ' +
+                ' <button type="button" class="btn btn-danger remove" ng-click="remove()" ng-show="canRemove()">删除</button> ' +
+            '</div>'
+    };
+
+});
+angular.module('directives.crud.edit', [])
+
+//apply this directive to an element at or below a form that will manage crud operations on a resource
+//the resource must expose the following instance methods: $saveOrUpdate() $id() and $remove()
+
+.directive('crudEdit', ['$parse', function($parse){
+
+        return {
+
+        };
+
+    }]);
 angular.module('resources.projects', ['mongolabResource']);
 
 angular.module('resources.projects').factory('projects', ['mongolabResource',function(mongolabResource){
@@ -312,7 +344,7 @@ angular.module('security.authorization', ['security.service'])
 
                 requireAdminUser : function(){
 
-                    var promsie = security.requestCurrentUser().then(function(userInfo){
+                    var promise = security.requestCurrentUser().then(function(userInfo){
                         if( !security.isAdmin() ){
                             return queue.pushRetryFn('unauthorized-client', service.requireAdminUser);
                         }
@@ -968,7 +1000,78 @@ angular.module('services.notifications',[])
         return notificationsService;
 
     }]);
-angular.module('templates.app', ['header.tpl.html', 'notifications.tpl.html', 'projectsInfo/list.tpl.html']);
+angular.module('templates.app', ['admin/projects/projects-edit.tpl.html', 'admin/projects/projects-list.tpl.html', 'header.tpl.html', 'notifications.tpl.html', 'projectsInfo/list.tpl.html']);
+
+angular.module("admin/projects/projects-edit.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("admin/projects/projects-edit.tpl.html",
+    "<div class=\"well\"> <!-- projectsEditCtrl服务 -->\n" +
+    "    <form name=\"form\" crud-edit=\"project\">\n" +
+    "        <legend>项目</legend>\n" +
+    "        <div class=\"row-fluid\">\n" +
+    "            <div class=\"span6\">\n" +
+    "                <label>名称</label>\n" +
+    "                <input type=\"text\" name=\"name\" ng-model=\"project.name\" class=\"span10\" required autofocus/>\n" +
+    "                <label>描述</label>\n" +
+    "                <textarea rows=\"10\" cols=\"10\" ng-model=\"project.desc\" class=\"span10\"></textarea>\n" +
+    "            </div>\n" +
+    "            <div class=\"span6\" ng-controller=\"TeamMembersController\">\n" +
+    "                <label>产品拥有者</label>\n" +
+    "                <select class=\"span12\" ng-model=\"project.productOwner\"\n" +
+    "                        ng-options=\"user.$id() as user.getFullName() for user in productOwnerCandidates()\" required>\n" +
+    "                 <option value=\"\">-- 选择 --</option>\n" +
+    "                </select>\n" +
+    "                <label>Scrum管理者</label>\n" +
+    "                <select class=\"span12\" ng-model=\"project.scrumMaster\"\n" +
+    "                        ng-options=\"user.$id() as user.getFullName() for user in scrumMasterCandidates()\" required>\n" +
+    "                    <option value=\"\">-- 选择 --</option>\n" +
+    "                </select>\n" +
+    "                <label>开发团队</label>\n" +
+    "                <table class=\"table table-bordered table-condensed table-striped table-hover\">\n" +
+    "                    <thead>\n" +
+    "                        <tr>\n" +
+    "                            <th>用户</th>\n" +
+    "                            <th>&nbsp;</th>\n" +
+    "                        </tr>\n" +
+    "                    </thead>\n" +
+    "                    <tbody>\n" +
+    "                        <tr ng-repeat=\"userId in project.teamMembers\">\n" +
+    "                            <td>{{usersLookup[userId].getFullName()}}</td>\n" +
+    "                            <td>\n" +
+    "                                <button class=\"btn btn-small\" ng-click=\"removeTeamMember(userId)\" ng-disabled=\"!selTeamMember\"></button>\n" +
+    "                            </td>\n" +
+    "                        </tr>\n" +
+    "                    </tbody>\n" +
+    "                </table>\n" +
+    "            </div>\n" +
+    "        </div>\n" +
+    "        <div class=\"row-fluid\">\n" +
+    "            <hr>\n" +
+    "            <crud-buttons class=\"span12\"></crud-buttons>\n" +
+    "        </div>\n" +
+    "    </form>\n" +
+    "</div>");
+}]);
+
+angular.module("admin/projects/projects-list.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("admin/projects/projects-list.tpl.html",
+    "<table class=\"table table-bordered table-condensed table-striped table-hover\"> <!-- projectsListCtrl服务 -->\n" +
+    "    <thead>\n" +
+    "        <tr>\n" +
+    "            <th>名称</th>\n" +
+    "            <th>描述</th>\n" +
+    "        </tr>\n" +
+    "    </thead>\n" +
+    "    <tbody>\n" +
+    "        <tr ng-repeat=\"project in projects\" ng-click=\"edit(project.$id())\">\n" +
+    "            <td>{{project.name}}</td>\n" +
+    "            <td>{{project.desc}}</td>\n" +
+    "        </tr>\n" +
+    "    </tbody>\n" +
+    "</table>\n" +
+    "<div class=\"well\">\n" +
+    "    <button class=\"btn\" ng-click=\"new()\">新建项目</button>\n" +
+    "</div>");
+}]);
 
 angular.module("header.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("header.tpl.html",
