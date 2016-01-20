@@ -1,0 +1,1 @@
+angular.module('directives.crud',['directives.crud.buttons']); //crud指令集
