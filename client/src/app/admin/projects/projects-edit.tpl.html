@@ -14,7 +14,7 @@
                         ng-options="user.$id() as user.getFullName() for user in productOwnerCandidates()" required>
                  <option value="">-- 选择 --</option>
                 </select>
-                <label>Scrum管理者</label>
+                <label>项目管理者</label>
                 <select class="span12" ng-model="project.scrumMaster"
                         ng-options="user.$id() as user.getFullName() for user in scrumMasterCandidates()" required>
                     <option value="">-- 选择 --</option>
@@ -23,7 +23,7 @@
                 <table class="table table-bordered table-condensed table-striped table-hover">
                     <thead>
                         <tr>
-                            <th>用户</th>
+                            <th>开发人员</th>
                             <th>&nbsp;</th>
                         </tr>
                     </thead>
