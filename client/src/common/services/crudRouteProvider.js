@@ -27,8 +27,8 @@
             }
 
             //create the template url for a route to our resource that does the specified operation
-            var templateUrl = function(operation){
-                return baseUrl + '/' + resourceName.toLowerCase() + '-' + operation + '.tpl.html';
+            var templateUrl = function(operation){                    //这里漏掉了toLowerCase
+                return baseUrl + '/' + resourceName.toLowerCase() + '-' + operation.toLowerCase() + '.tpl.html';
             };
 
             //create the controller name for a route to our resource that does the specified operation

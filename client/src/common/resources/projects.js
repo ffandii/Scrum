@@ -1,6 +1,6 @@
 angular.module('resources.projects', ['mongolabResource']);
 
-angular.module('resources.projects').factory('projects', ['mongolabResource',function(mongolabResource){
+angular.module('resources.projects').factory('Projects', ['mongolabResource',function(mongolabResource){
 
     var projects = mongolabResource('projects');  //productsOwner > scrumMater > devMember
 

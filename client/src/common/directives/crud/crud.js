@@ -1,1 +1,1 @@
-angular.module('directives.crud',['directives.crud.buttons']); //crud指令集
+angular.module('directives.crud',['directives.crud.buttons','directives.crud.edit']); //crud指令集
