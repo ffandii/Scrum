@@ -1,4 +1,4 @@
-/* scrum - v 0.0.1 - 2016-01-20 
+/* scrum - v 0.0.1 - 2016-01-21 
 https://github.com/ffandii/Scrum 
  * Copyright (c) 2016 ffandii 
 */
@@ -221,7 +221,7 @@ angular.module('projectsInfo', [])
 angular.module('projectsInfo').controller('ProjectsInfoCtrl',['$scope',function($scope){
 
 }]);
-angular.module('directives.crud',['directives.crud.buttons']); //crud指令集
+angular.module('directives.crud',['directives.crud.buttons','directives.crud.edit']); //crud指令集
 angular.module('directives.crud.buttons', []);
 
 angular.module('crudButtons',function(){
@@ -247,12 +247,95 @@ angular.module('directives.crud.edit', [])
 
         return {
 
+            scope : true,
+            require : "^form",
+            //this directive can only appear as an attribute
+            link : function(scope,element,attrs,form){
+
+                var resourceGetter = $parse(attrs.crudEdit);
+                var resourceSetter = resourceGetter.assign;
+                //store the object for easy access
+                var resource = resourceGetter(scope);
+                var original = angular.copy(resource);
+
+                var checkResourceMethod = function(methodName){
+                    if(!angular.isFunction(resource[methodName])){
+                        throw new Error('crudEdit directive: the resource must expose the '+methodName+'() instance method');
+                    }
+                };
+
+                checkResourceMethod('$saveOrUpdate');
+                checkResourceMethod('$id');
+                checkResourceMethod('$remove');
+
+                //该功能可以帮助我们从指令属性中提取命令函数
+                var makeFn = function(attrName){
+                    var fn = scope.$eval(attrs[attrName]);
+                    if(!angular.isFunction(fn)){
+                        throw new Error('crudEdit directive: the attribute '+attrName+" must evaluate to a function");
+                    }
+                    return fn;
+                };
+
+                //set up callbacks with fallback
+                var userOnSave = attrs.onSave?makeFn('onSave'):(scope.onSave||angular.noop);
+                var onSave = function(result, status, headers, config){
+                    original = result;
+                    userOnSave(result, status, headers, config);
+                };
+
+                var onRemove = attrs.onRemove?makeFn('onRemove'):(scope.onRemove || onSave);
+                var onError = attrs.onError?makeFn('onError'):(scope.onError||angular.noop);
+
+                scope.save = function(){
+                    resource.$saveOrUpdate(onSave,onSave,onError,onError);
+                };
+
+                scope.revertChanges = function(){
+                    resource = angular.copy(original);
+                    resourceSetter(scope, resource);
+                    form.$setPristine();
+                };
+
+                scope.remove = function(){
+                    if(resource.$id()){
+                        resource.$remove(onRemove, onError);
+                    } else {
+                        onRemove();
+                    }
+                };
+
+                scope.canSave = function(){
+                    return form.$valid && !angular.equals(resource, original);
+                };
+
+                scope.canRevert = function(){
+                    return !angular.equals(resource, original);
+                };
+
+                scope.canRemove = function(){
+                    return resource.$id();
+                };
+
+                scope.getCssClasses = function(fieldName){
+                    var ngModelController = form[fieldName];
+                    return {
+                        error : ngModelController.$invalid && !angular.equals(resource, original),
+                        success : ngModelController.$valid && !angular.equals(resource, original)
+                    };
+                };
+
+                scope.showError = function(fieldName, error) {
+                    return form[fieldName].$error[error];
+                };
+            }
+
         };
 
     }]);
 angular.module('resources.projects', ['mongolabResource']);
 
-angular.module('resources.projects').factory('projects', ['mongolabResource',function(mongolabResource){
+angular.module('resources.projects').factory('Projects', ['mongolabResource',function(mongolabResource){
 
     var projects = mongolabResource('projects');  //productsOwner > scrumMater > devMember
 
@@ -813,7 +896,7 @@ angular.module('services.crud').factory('crudListMethods',['$location',function(
 
             //create the template url for a route to our resource that does the specified operation
             var templateUrl = function(operation){
-                return baseUrl + '/' + resourceName.toLowerCase() + '-' + operation + '.tpl.html';
+                return baseUrl + '/' + resourceName.toLowerCase() + '-' + operation.toLowerCase() + '.tpl.html';
             };
 
             //create the controller name for a route to our resource that does the specified operation
