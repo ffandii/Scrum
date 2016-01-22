@@ -9,11 +9,10 @@ angular.module('services.notifications',[])
 
         var notificationsService = {};
 
-        var addNotification = function(notificationsArray, notificationObj){
-            if(!angular.isObject(notificationObj)){
-                throw new Error("only object can be added to the notification service");
+        var addNotification = function (notificationsArray, notificationObj) {
+            if (!angular.isObject(notificationObj)) {
+                throw new Error("Only object can be added to the notification service");
             }
-
             notificationsArray.push(notificationObj);
             return notificationObj;
         };
@@ -36,7 +35,7 @@ angular.module('services.notifications',[])
             return addNotification(notifications.ROUTE_CURRENT, notification);
         };
 
-        notificationsService.putForNextRoute = function(notification){
+        notificationsService.pushForNextRoute = function(notification){  //push 写成put的错误
             return addNotification(notifications.ROUTE_NEXT, notification);
         };
 
