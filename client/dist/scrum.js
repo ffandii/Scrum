@@ -1,8 +1,8 @@
-/* scrum - v 0.0.1 - 2016-01-21 
+/* scrum - v 0.0.1 - 2016-01-22 
 https://github.com/ffandii/Scrum 
  * Copyright (c) 2016 ffandii 
 */
- angular.module('admin',['admin-projects']);
+ angular.module('admin',['admin-projects', 'admin-users']);
 angular.module('admin-projects',[
     'resources.projects',
     'resources.users',
@@ -103,6 +103,156 @@ angular.module('admin-projects',[
     }]);
 
 
+angular.module('admin-users-edit',[
+    'services.crud',
+    'services.i18nNotifications',
+    'admin-users-edit-uniqueEmail',
+    'admin-users-edit-validateEquals'
+])
+
+.controller('UsersEditCtrl',['$scope', '$location', 'i18nNotifications', 'user', function($scope, $location, i18nNotifications, user){
+
+        $scope.user = user;
+        $scope.password = user.password;
+
+        $scope.onSave = function(user){
+            i18nNotifications.pushForNextRoute('crud.user.save.success', 'success', { id : user.$id() });
+            $location.path('/admin/users');
+        };
+
+        $scope.onError = function(){
+            i18nNotifications.pushForCurrentRoute('crud.user.save.error', 'error');
+        };
+
+        $scope.onRemove = function(user){
+            i18nNotifications.pushForNextRoute('crud.user.remove.success', 'success', {id : user.$id()} );
+            $location.path('/admin/users');
+        };
+
+    }]);
+angular.module('admin-users-list',[
+    'services.crud',
+    'services.i18nNotifications'
+])
+
+.controller('UsersListCtrl', ['$scope', 'crudListMethods', 'users', 'i18nNotifications', function( $scope, crudListMethods, users, i18nNotifications ){
+
+        $scope.users = users;
+
+        angular.extend($scope, crudListMethods('/admin/users'));
+
+        $scope.remove = function(user, $index, $event){
+            $event.stopPropagation();
+            user.$remove(function(){
+                $scope.users.splice($index,1);
+                i18nNotifications.pushForCurrentRoute('crud.user.remove.success', 'success', {id: user.$id()});
+            }, function(){
+                i18nNotifications.pushForCurrentRoute('crud.user.remove.error', 'error', {id : user.$id()});
+            });
+        };
+    }]);
+angular.module('admin-users', [
+    'admin-users-list',
+    'admin-users-edit',
+
+    'services.crud',
+    'security.authorization',
+    'directives.gravatar'
+])
+
+.config(['crudRouteProvider','securityAuthorizationProvider', function(crudRouteProvider, securityAuthorizationProvider){
+
+        crudRouteProvider.routesFor('Users', 'admin')
+            .whenList({
+                users : ['Users', function(Users){ return Users.all(); }],
+                currentUser : securityAuthorizationProvider.requireAdminUser
+            })
+            .whenNew({
+                user : ['Users',function(Users){ return new Users(); }],
+                currentUser : securityAuthorizationProvider.requireAdminUser
+            })
+            .whenEdit({
+                user : ['$route','Users', function($route, Users){
+                    return users.getById($route.current.params.itemId);
+                }],
+                currentUser : securityAuthorizationProvider.requireAdminUser
+            });
+
+    }]);
+angular.module('admin-users-edit-uniqueEmail',['resources.users'])
+
+/*
+a validation directive to ensure that the model contains a unique email address
+*/
+
+.directive('uniqueEmail', ['Users',function(Users){
+
+        return {
+
+            require : "ngModel",
+            restrict : "A",
+            link : function(scope, el, attrs, ctrl){
+
+                ctrl.$parsers.push(function(viewValue){
+
+                    if( viewValue ){
+                        Users.query({email: viewValue}, function(users){
+                            if(users.length === 0){
+                                ctrl.$setValidity('uniqueEmail', true);
+                            } else {
+                                ctrl.$setValidity('uniqueEmail', false);
+                            }
+                        });
+                    }
+
+                    return viewValue;
+
+                });
+
+            }
+
+        };
+
+    }]);
+angular.module('admin-users-edit-validateEquals',[])
+
+/*
+a validation directive to ensure that this model has the same value as some other
+*/
+
+.directive('validateEquals',function(){
+
+        return {
+            restrict : 'A',
+            require : 'ngModel',
+            link : function(scope, elm, attrs, ctrl){
+
+                function validateEqual(myValue, otherValue){
+                    if(myValue === otherValue){
+                        ctrl.$setValidity('equal', true);
+                        return myValue;
+                    } else {
+                        ctrl.$setValidity('equal',false);
+                        return undefined;
+                    }
+                }
+
+                scope.$watch(attrs.validateEquals,function(otherModelValue){
+                    ctrl.$setValidity('equal', ctrl.$viewValue === otherModelValue );
+                });
+
+                ctrl.$parsers.push(function(viewValue){
+                    return validateEqual(viewValue, scope.$eval(attrs.validateEquals));
+                });
+
+                ctrl.$formatters.push(function(modelValue){
+                    return validateEqual(modelValue, scope.$eval(attrs.validateEquals));
+                });
+
+            }
+        };
+
+    });
 /**
  * Created by Administrator on 2016/1/3 0003.
  */
@@ -333,6 +483,252 @@ angular.module('directives.crud.edit', [])
         };
 
     }]);
+angular.module('directives.gravatar',[])
+
+//a simple directive to display a gravatar  image given an email
+.directive('gravatar', ['md5',function(md5){
+
+        return {
+            restrict : "E",
+            template : '<img ng-src="http://www.gravatar.com/avatar/{{hash}}{{getParams}}"/>',
+            replace : true,
+            scope : {
+                email : '=',
+                size : '=',
+                defaultImage : '=',
+                forceDefault : '='
+            },
+            link : function(scope, element, attr){
+                scope.options = {};
+                scope.$watch('email', function(email){
+                    if(email){
+                        scope.hash = md5(email.trim().toLowerCase());
+                    }
+                });
+                scope.$watch('size', function(size){
+                    scope.options.s = ( angular.isNumber(size)? size : undefined );
+                    generateParams();
+                });
+                scope.$watch('forceDefault',function(forceDefault){
+                    scope.options.f = forceDefault ? 'y' : undefined;
+                    generateParams();
+                });
+                scope.$watch('defaultImage', function(defaultImage){
+                    scope.options.d = defaultImage ? defaultImage : undefined;
+                    generateParams();
+                });
+                function generateParams(){
+                    var options = [];
+                    scope.getParams = '';
+                    angular.forEach(scope.options, function(value, key){
+                        if(value){
+                            options.push(key+"="+encodeURIComponent(value));
+                        }
+                    });
+                    if(options.length > 0){
+                        scope.getParams = '?'+options.join('&');
+                    }
+                }
+            }
+        };
+
+    }])
+.factory('md5',function(){  //md5服务
+
+        function md5cycle(x, k) {
+            var a = x[0],
+                b = x[1],
+                c = x[2],
+                d = x[3];
+
+            a = ff(a, b, c, d, k[0], 7, -680876936);
+            d = ff(d, a, b, c, k[1], 12, -389564586);
+            c = ff(c, d, a, b, k[2], 17, 606105819);
+            b = ff(b, c, d, a, k[3], 22, -1044525330);
+            a = ff(a, b, c, d, k[4], 7, -176418897);
+            d = ff(d, a, b, c, k[5], 12, 1200080426);
+            c = ff(c, d, a, b, k[6], 17, -1473231341);
+            b = ff(b, c, d, a, k[7], 22, -45705983);
+            a = ff(a, b, c, d, k[8], 7, 1770035416);
+            d = ff(d, a, b, c, k[9], 12, -1958414417);
+            c = ff(c, d, a, b, k[10], 17, -42063);
+            b = ff(b, c, d, a, k[11], 22, -1990404162);
+            a = ff(a, b, c, d, k[12], 7, 1804603682);
+            d = ff(d, a, b, c, k[13], 12, -40341101);
+            c = ff(c, d, a, b, k[14], 17, -1502002290);
+            b = ff(b, c, d, a, k[15], 22, 1236535329);
+
+            a = gg(a, b, c, d, k[1], 5, -165796510);
+            d = gg(d, a, b, c, k[6], 9, -1069501632);
+            c = gg(c, d, a, b, k[11], 14, 643717713);
+            b = gg(b, c, d, a, k[0], 20, -373897302);
+            a = gg(a, b, c, d, k[5], 5, -701558691);
+            d = gg(d, a, b, c, k[10], 9, 38016083);
+            c = gg(c, d, a, b, k[15], 14, -660478335);
+            b = gg(b, c, d, a, k[4], 20, -405537848);
+            a = gg(a, b, c, d, k[9], 5, 568446438);
+            d = gg(d, a, b, c, k[14], 9, -1019803690);
+            c = gg(c, d, a, b, k[3], 14, -187363961);
+            b = gg(b, c, d, a, k[8], 20, 1163531501);
+            a = gg(a, b, c, d, k[13], 5, -1444681467);
+            d = gg(d, a, b, c, k[2], 9, -51403784);
+            c = gg(c, d, a, b, k[7], 14, 1735328473);
+            b = gg(b, c, d, a, k[12], 20, -1926607734);
+
+            a = hh(a, b, c, d, k[5], 4, -378558);
+            d = hh(d, a, b, c, k[8], 11, -2022574463);
+            c = hh(c, d, a, b, k[11], 16, 1839030562);
+            b = hh(b, c, d, a, k[14], 23, -35309556);
+            a = hh(a, b, c, d, k[1], 4, -1530992060);
+            d = hh(d, a, b, c, k[4], 11, 1272893353);
+            c = hh(c, d, a, b, k[7], 16, -155497632);
+            b = hh(b, c, d, a, k[10], 23, -1094730640);
+            a = hh(a, b, c, d, k[13], 4, 681279174);
+            d = hh(d, a, b, c, k[0], 11, -358537222);
+            c = hh(c, d, a, b, k[3], 16, -722521979);
+            b = hh(b, c, d, a, k[6], 23, 76029189);
+            a = hh(a, b, c, d, k[9], 4, -640364487);
+            d = hh(d, a, b, c, k[12], 11, -421815835);
+            c = hh(c, d, a, b, k[15], 16, 530742520);
+            b = hh(b, c, d, a, k[2], 23, -995338651);
+
+            a = ii(a, b, c, d, k[0], 6, -198630844);
+            d = ii(d, a, b, c, k[7], 10, 1126891415);
+            c = ii(c, d, a, b, k[14], 15, -1416354905);
+            b = ii(b, c, d, a, k[5], 21, -57434055);
+            a = ii(a, b, c, d, k[12], 6, 1700485571);
+            d = ii(d, a, b, c, k[3], 10, -1894986606);
+            c = ii(c, d, a, b, k[10], 15, -1051523);
+            b = ii(b, c, d, a, k[1], 21, -2054922799);
+            a = ii(a, b, c, d, k[8], 6, 1873313359);
+            d = ii(d, a, b, c, k[15], 10, -30611744);
+            c = ii(c, d, a, b, k[6], 15, -1560198380);
+            b = ii(b, c, d, a, k[13], 21, 1309151649);
+            a = ii(a, b, c, d, k[4], 6, -145523070);
+            d = ii(d, a, b, c, k[11], 10, -1120210379);
+            c = ii(c, d, a, b, k[2], 15, 718787259);
+            b = ii(b, c, d, a, k[9], 21, -343485551);
+
+            x[0] = add32(a, x[0]);
+            x[1] = add32(b, x[1]);
+            x[2] = add32(c, x[2]);
+            x[3] = add32(d, x[3]);
+
+        }
+
+        function cmn(q, a, b, x, s, t) {
+            a = add32(add32(a, q), add32(x, t));
+            return add32((a << s) | (a >>> (32 - s)), b);
+        }
+
+        function ff(a, b, c, d, x, s, t) {
+            return cmn((b & c) | ((~b) & d), a, b, x, s, t);
+        }
+
+        function gg(a, b, c, d, x, s, t) {
+            return cmn((b & d) | (c & (~d)), a, b, x, s, t);
+        }
+
+        function hh(a, b, c, d, x, s, t) {
+            return cmn(b ^ c ^ d, a, b, x, s, t);
+        }
+
+        function ii(a, b, c, d, x, s, t) {
+            return cmn(c ^ (b | (~d)), a, b, x, s, t);
+        }
+
+        function md51(s) {
+            txt = '';
+            var n = s.length,
+                state = [1732584193, -271733879, -1732584194, 271733878],
+                i;
+            for (i = 64; i <= s.length; i += 64) {
+                md5cycle(state, md5blk(s.substring(i - 64, i)));
+            }
+            s = s.substring(i - 64);
+            var tail = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+            for (i = 0; i < s.length; i++) {
+                tail[i >> 2] |= s.charCodeAt(i) << ((i % 4) << 3);
+            }
+            tail[i >> 2] |= 0x80 << ((i % 4) << 3);
+            if (i > 55) {
+                md5cycle(state, tail);
+                for (i = 0; i < 16; i++) {
+                    tail[i] = 0;
+                }
+            }
+            tail[14] = n * 8;
+            md5cycle(state, tail);
+            return state;
+        }
+
+        /* there needs to be support for Unicode here,
+         * unless we pretend that we can redefine the MD-5
+         * algorithm for multi-byte characters (perhaps
+         * by adding every four 16-bit characters and
+         * shortening the sum to 32 bits). Otherwise
+         * I suggest performing MD-5 as if every character
+         * was two bytes--e.g., 0040 0025 = @%--but then
+         * how will an ordinary MD-5 sum be matched?
+         * There is no way to standardize text to something
+         * like UTF-8 before transformation; speed cost is
+         * utterly prohibitive. The JavaScript standard
+         * itself needs to look at this: it should start
+         * providing access to strings as preformed UTF-8
+         * 8-bit unsigned value arrays.
+         */
+
+        function md5blk(s) { /* I figured global was faster.   */
+            var md5blks = [],
+                i; /* Andy King said do it this way. */
+            for (i = 0; i < 64; i += 4) {
+                md5blks[i >> 2] = s.charCodeAt(i) + (s.charCodeAt(i + 1) << 8) + (s.charCodeAt(i + 2) << 16) + (s.charCodeAt(i + 3) << 24);
+            }
+            return md5blks;
+        }
+
+        var hex_chr = '0123456789abcdef'.split('');
+
+        function rhex(n) {
+            var s = '', j = 0;
+            for (; j < 4; j++) {
+                s += hex_chr[(n >> (j * 8 + 4)) & 0x0F] + hex_chr[(n >> (j * 8)) & 0x0F];
+            }
+            return s;
+        }
+
+        function hex(x) {
+            for (var i = 0; i < x.length; i++) {
+                x[i] = rhex(x[i]);
+            }
+            return x.join('');
+        }
+
+        function md5(s) {
+            return hex(md51(s));
+        }
+
+        /* this function is much faster,
+         so if possible we use it. Some IEs
+         are the only ones I know of that
+         need the idiotic second function,
+         generated by an if clause.  */
+
+        add32 = function(a, b) {
+            return (a + b) & 0xFFFFFFFF;
+        };
+
+        if (md5('hello') !== '5d41402abc4b2a76b9719d911017c592') {
+            add32 = function (x, y) {
+                var lsw = (x & 0xFFFF) + (y & 0xFFFF),
+                    msw = (x >> 16) + (y >> 16) + (lsw >> 16);
+                return (msw << 16) | (lsw & 0xFFFF);
+            };
+        }
+
+        return md5;
+
+    });
 angular.module('resources.projects', ['mongolabResource']);
 
 angular.module('resources.projects').factory('Projects', ['mongolabResource',function(mongolabResource){
@@ -895,7 +1291,7 @@ angular.module('services.crud').factory('crudListMethods',['$location',function(
             }
 
             //create the template url for a route to our resource that does the specified operation
-            var templateUrl = function(operation){
+            var templateUrl = function(operation){                    //这里漏掉了toLowerCase
                 return baseUrl + '/' + resourceName.toLowerCase() + '-' + operation.toLowerCase() + '.tpl.html';
             };
 
@@ -1083,7 +1479,7 @@ angular.module('services.notifications',[])
         return notificationsService;
 
     }]);
-angular.module('templates.app', ['admin/projects/projects-edit.tpl.html', 'admin/projects/projects-list.tpl.html', 'header.tpl.html', 'notifications.tpl.html', 'projectsInfo/list.tpl.html']);
+angular.module('templates.app', ['admin/projects/projects-edit.tpl.html', 'admin/projects/projects-list.tpl.html', 'admin/users/users-edit.tpl.html', 'admin/users/users-list.tpl.html', 'header.tpl.html', 'notifications.tpl.html', 'projectsInfo/list.tpl.html']);
 
 angular.module("admin/projects/projects-edit.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("admin/projects/projects-edit.tpl.html",
@@ -1103,7 +1499,7 @@ angular.module("admin/projects/projects-edit.tpl.html", []).run(["$templateCache
     "                        ng-options=\"user.$id() as user.getFullName() for user in productOwnerCandidates()\" required>\n" +
     "                 <option value=\"\">-- 选择 --</option>\n" +
     "                </select>\n" +
-    "                <label>Scrum管理者</label>\n" +
+    "                <label>项目管理者</label>\n" +
     "                <select class=\"span12\" ng-model=\"project.scrumMaster\"\n" +
     "                        ng-options=\"user.$id() as user.getFullName() for user in scrumMasterCandidates()\" required>\n" +
     "                    <option value=\"\">-- 选择 --</option>\n" +
@@ -1112,7 +1508,7 @@ angular.module("admin/projects/projects-edit.tpl.html", []).run(["$templateCache
     "                <table class=\"table table-bordered table-condensed table-striped table-hover\">\n" +
     "                    <thead>\n" +
     "                        <tr>\n" +
-    "                            <th>用户</th>\n" +
+    "                            <th>开发人员</th>\n" +
     "                            <th>&nbsp;</th>\n" +
     "                        </tr>\n" +
     "                    </thead>\n" +
@@ -1153,6 +1549,65 @@ angular.module("admin/projects/projects-list.tpl.html", []).run(["$templateCache
     "</table>\n" +
     "<div class=\"well\">\n" +
     "    <button class=\"btn\" ng-click=\"new()\">新建项目</button>\n" +
+    "</div>");
+}]);
+
+angular.module("admin/users/users-edit.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("admin/users/users-edit.tpl.html",
+    "<div class=\"well\">\n" +
+    "    <form name=\"form\" novalidate crud-edit=\"user\">\n" +
+    "        <legend>开发人员</legend>\n" +
+    "        <gravatar email=\"user.email\" size=\"200\" class=\"img-polaroid pull-right\"></gravatar>\n" +
+    "        <label for=\"email\">邮箱</label>\n" +
+    "        <input class=\"span6\" type=\"email\" id=\"email\" name=\"email\" ng-model=\"user.email\" required unique-email/>\n" +
+    "        <span ng-show=\"showError('email','required')\" class=\"help-inline\">这是必填栏.</span>\n" +
+    "        <span ng-show=\"showError('email','email')\" class=\"help-inline\">请输入一个有效的邮箱地址.</span>\n" +
+    "        <span ng-show=\"showError('email','uniqueEmail')\" class=\"help-inline\">此邮箱地址无效，请输入另一个.</span>\n" +
+    "        <label for=\"lastName\">名</label>\n" +
+    "        <input class=\"span6\" type=\"text\" id=\"lastName\" name=\"lastName\" ng-model=\"user.lastName\" required/>\n" +
+    "        <span ng-show=\"showError('lastName','required')\" class=\"help-inline\">这是必填栏.</span>\n" +
+    "        <label for=\"firstName\">姓</label>\n" +
+    "        <input class=\"span6\" type=\"text\" id=\"firstName\" name=\"firstName\" ng-model=\"user.firstName\" required/>\n" +
+    "        <span ng-show=\"showError('firstName','required')\" class=\"help-inline\">这是必填栏.</span>\n" +
+    "        <label for=\"password\">密码</label>\n" +
+    "        <input class=\"span6\" type=\"password\" id=\"password\" name=\"password\" ng-model=\"user.password\" required/>\n" +
+    "        <span ng-show=\"showError('password','required')\" class=\"help-inline\">这是必填栏.</span>\n" +
+    "        <span ng-show=\"showError('passwordRepeat','equal')\" class=\"help-inline\">密码不匹配.</span>\n" +
+    "        <label for=\"passwordRepeat\">密码 （重复）</label>\n" +
+    "        <input class=\"span6\" type=\"password\" id=\"passwordRepeat\" name=\"passwordRepeat\" ng-model=\"password\" required validate-equals=\"user.password\"/>\n" +
+    "        <span ng-show=\"showError('passwordRepeat', 'required')\" class=\"help-inline\">这是必填栏.</span>\n" +
+    "        <span ng-show=\"showError('passwordRepeat', 'equal')\" class=\"help-inline\">密码不匹配.</span>\n" +
+    "        <label>管理员</label>\n" +
+    "        <input type=\"checkbox\" ng-model=\"user.admin\">\n" +
+    "        <hr>\n" +
+    "        <crud-buttons></crud-buttons>\n" +
+    "    </form>\n" +
+    "</div>");
+}]);
+
+angular.module("admin/users/users-list.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("admin/users/users-list.tpl.html",
+    "<table class=\"table table-bordered table-condensed table-striped table-hover\">\n" +
+    "    <thead>\n" +
+    "        <tr>\n" +
+    "            <th></th>\n" +
+    "            <th>邮箱</th>\n" +
+    "            <th>名</th>\n" +
+    "            <th>姓</th>\n" +
+    "        </tr>\n" +
+    "    </thead>\n" +
+    "    <tbody>\n" +
+    "        <tr ng-repeat=\"user in users\" ng-click=\"edit(user.$id())\">\n" +
+    "            <td><gravatar email=\"user.email\" size=\"50\" default-image=\"'monsterid'\"></gravatar></td>\n" +
+    "            <td>{{user.email}}</td>\n" +
+    "            <td>{{user.lastName}}</td>\n" +
+    "            <td>{{user.firstName}}</td>\n" +
+    "            <td><button class=\"btn btn-danger remove\" ng-click=\"remove(user,$index,$event)\">删除</button></td>\n" +
+    "        </tr>\n" +
+    "    </tbody>\n" +
+    "</table>\n" +
+    "<div class=\"well\">\n" +
+    "    <button class=\"btn\" ng-click=\"new()\">新建开发人员</button>\n" +
     "</div>");
 }]);
 

@@ -1,4 +1,4 @@
-angular.module('templates.app', ['admin/projects/projects-edit.tpl.html', 'admin/projects/projects-list.tpl.html', 'header.tpl.html', 'notifications.tpl.html', 'projectsInfo/list.tpl.html']);
+angular.module('templates.app', ['admin/projects/projects-edit.tpl.html', 'admin/projects/projects-list.tpl.html', 'admin/users/users-edit.tpl.html', 'admin/users/users-list.tpl.html', 'header.tpl.html', 'notifications.tpl.html', 'projectsInfo/list.tpl.html']);
 
 angular.module("admin/projects/projects-edit.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("admin/projects/projects-edit.tpl.html",
@@ -18,7 +18,7 @@ angular.module("admin/projects/projects-edit.tpl.html", []).run(["$templateCache
     "                        ng-options=\"user.$id() as user.getFullName() for user in productOwnerCandidates()\" required>\n" +
     "                 <option value=\"\">-- 选择 --</option>\n" +
     "                </select>\n" +
-    "                <label>Scrum管理者</label>\n" +
+    "                <label>项目管理者</label>\n" +
     "                <select class=\"span12\" ng-model=\"project.scrumMaster\"\n" +
     "                        ng-options=\"user.$id() as user.getFullName() for user in scrumMasterCandidates()\" required>\n" +
     "                    <option value=\"\">-- 选择 --</option>\n" +
@@ -27,7 +27,7 @@ angular.module("admin/projects/projects-edit.tpl.html", []).run(["$templateCache
     "                <table class=\"table table-bordered table-condensed table-striped table-hover\">\n" +
     "                    <thead>\n" +
     "                        <tr>\n" +
-    "                            <th>用户</th>\n" +
+    "                            <th>开发人员</th>\n" +
     "                            <th>&nbsp;</th>\n" +
     "                        </tr>\n" +
     "                    </thead>\n" +
@@ -68,6 +68,65 @@ angular.module("admin/projects/projects-list.tpl.html", []).run(["$templateCache
     "</table>\n" +
     "<div class=\"well\">\n" +
     "    <button class=\"btn\" ng-click=\"new()\">新建项目</button>\n" +
+    "</div>");
+}]);
+
+angular.module("admin/users/users-edit.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("admin/users/users-edit.tpl.html",
+    "<div class=\"well\">\n" +
+    "    <form name=\"form\" novalidate crud-edit=\"user\">\n" +
+    "        <legend>开发人员</legend>\n" +
+    "        <gravatar email=\"user.email\" size=\"200\" class=\"img-polaroid pull-right\"></gravatar>\n" +
+    "        <label for=\"email\">邮箱</label>\n" +
+    "        <input class=\"span6\" type=\"email\" id=\"email\" name=\"email\" ng-model=\"user.email\" required unique-email/>\n" +
+    "        <span ng-show=\"showError('email','required')\" class=\"help-inline\">这是必填栏.</span>\n" +
+    "        <span ng-show=\"showError('email','email')\" class=\"help-inline\">请输入一个有效的邮箱地址.</span>\n" +
+    "        <span ng-show=\"showError('email','uniqueEmail')\" class=\"help-inline\">此邮箱地址无效，请输入另一个.</span>\n" +
+    "        <label for=\"lastName\">名</label>\n" +
+    "        <input class=\"span6\" type=\"text\" id=\"lastName\" name=\"lastName\" ng-model=\"user.lastName\" required/>\n" +
+    "        <span ng-show=\"showError('lastName','required')\" class=\"help-inline\">这是必填栏.</span>\n" +
+    "        <label for=\"firstName\">姓</label>\n" +
+    "        <input class=\"span6\" type=\"text\" id=\"firstName\" name=\"firstName\" ng-model=\"user.firstName\" required/>\n" +
+    "        <span ng-show=\"showError('firstName','required')\" class=\"help-inline\">这是必填栏.</span>\n" +
+    "        <label for=\"password\">密码</label>\n" +
+    "        <input class=\"span6\" type=\"password\" id=\"password\" name=\"password\" ng-model=\"user.password\" required/>\n" +
+    "        <span ng-show=\"showError('password','required')\" class=\"help-inline\">这是必填栏.</span>\n" +
+    "        <span ng-show=\"showError('passwordRepeat','equal')\" class=\"help-inline\">密码不匹配.</span>\n" +
+    "        <label for=\"passwordRepeat\">密码 （重复）</label>\n" +
+    "        <input class=\"span6\" type=\"password\" id=\"passwordRepeat\" name=\"passwordRepeat\" ng-model=\"password\" required validate-equals=\"user.password\"/>\n" +
+    "        <span ng-show=\"showError('passwordRepeat', 'required')\" class=\"help-inline\">这是必填栏.</span>\n" +
+    "        <span ng-show=\"showError('passwordRepeat', 'equal')\" class=\"help-inline\">密码不匹配.</span>\n" +
+    "        <label>管理员</label>\n" +
+    "        <input type=\"checkbox\" ng-model=\"user.admin\">\n" +
+    "        <hr>\n" +
+    "        <crud-buttons></crud-buttons>\n" +
+    "    </form>\n" +
+    "</div>");
+}]);
+
+angular.module("admin/users/users-list.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("admin/users/users-list.tpl.html",
+    "<table class=\"table table-bordered table-condensed table-striped table-hover\">\n" +
+    "    <thead>\n" +
+    "        <tr>\n" +
+    "            <th></th>\n" +
+    "            <th>邮箱</th>\n" +
+    "            <th>名</th>\n" +
+    "            <th>姓</th>\n" +
+    "        </tr>\n" +
+    "    </thead>\n" +
+    "    <tbody>\n" +
+    "        <tr ng-repeat=\"user in users\" ng-click=\"edit(user.$id())\">\n" +
+    "            <td><gravatar email=\"user.email\" size=\"50\" default-image=\"'monsterid'\"></gravatar></td>\n" +
+    "            <td>{{user.email}}</td>\n" +
+    "            <td>{{user.lastName}}</td>\n" +
+    "            <td>{{user.firstName}}</td>\n" +
+    "            <td><button class=\"btn btn-danger remove\" ng-click=\"remove(user,$index,$event)\">删除</button></td>\n" +
+    "        </tr>\n" +
+    "    </tbody>\n" +
+    "</table>\n" +
+    "<div class=\"well\">\n" +
+    "    <button class=\"btn\" ng-click=\"new()\">新建开发人员</button>\n" +
     "</div>");
 }]);
 
