@@ -126,7 +126,7 @@ angular.module("admin/users/users-list.tpl.html", []).run(["$templateCache", fun
     "    </tbody>\n" +
     "</table>\n" +
     "<div class=\"well\">\n" +
-    "    <button class=\"btn\" ng-click=\"new()\">新建开发人员</button>\n" +
+    "    <button class=\"btn\" ng-click=\"new()\">添加开发人员</button>\n" +
     "</div>");
 }]);
 
