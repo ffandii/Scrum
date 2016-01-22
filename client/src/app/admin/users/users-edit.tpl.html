@@ -1,0 +1,29 @@
+<div class="well">
+    <form name="form" novalidate crud-edit="user">
+        <legend>开发人员</legend>
+        <gravatar email="user.email" size="200" class="img-polaroid pull-right"></gravatar>
+        <label for="email">邮箱</label>
+        <input class="span6" type="email" id="email" name="email" ng-model="user.email" required unique-email/>
+        <span ng-show="showError('email','required')" class="help-inline">这是必填栏.</span>
+        <span ng-show="showError('email','email')" class="help-inline">请输入一个有效的邮箱地址.</span>
+        <span ng-show="showError('email','uniqueEmail')" class="help-inline">此邮箱地址无效，请输入另一个.</span>
+        <label for="lastName">名</label>
+        <input class="span6" type="text" id="lastName" name="lastName" ng-model="user.lastName" required/>
+        <span ng-show="showError('lastName','required')" class="help-inline">这是必填栏.</span>
+        <label for="firstName">姓</label>
+        <input class="span6" type="text" id="firstName" name="firstName" ng-model="user.firstName" required/>
+        <span ng-show="showError('firstName','required')" class="help-inline">这是必填栏.</span>
+        <label for="password">密码</label>
+        <input class="span6" type="password" id="password" name="password" ng-model="user.password" required/>
+        <span ng-show="showError('password','required')" class="help-inline">这是必填栏.</span>
+        <span ng-show="showError('passwordRepeat','equal')" class="help-inline">密码不匹配.</span>
+        <label for="passwordRepeat">密码 （重复）</label>
+        <input class="span6" type="password" id="passwordRepeat" name="passwordRepeat" ng-model="password" required validate-equals="user.password"/>
+        <span ng-show="showError('passwordRepeat', 'required')" class="help-inline">这是必填栏.</span>
+        <span ng-show="showError('passwordRepeat', 'equal')" class="help-inline">密码不匹配.</span>
+        <label>管理员</label>
+        <input type="checkbox" ng-model="user.admin">
+        <hr>
+        <crud-buttons></crud-buttons>
+    </form>
+</div>

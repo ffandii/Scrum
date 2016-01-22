@@ -9,7 +9,14 @@
     </thead>
     <tbody>
         <tr ng-repeat="user in users" ng-click="edit(user.$id())">
-
+            <td><gravatar email="user.email" size="50" default-image="'monsterid'"></gravatar></td>
+            <td>{{user.email}}</td>
+            <td>{{user.lastName}}</td>
+            <td>{{user.firstName}}</td>
+            <td><button class="btn btn-danger remove" ng-click="remove(user,$index,$event)">删除</button></td>
         </tr>
     </tbody>
 </table>
+<div class="well">
+    <button class="btn" ng-click="new()">新建开发人员</button>
+</div>
