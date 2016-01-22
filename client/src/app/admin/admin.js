@@ -1,1 +1,1 @@
-angular.module('admin',['admin-projects']);
+angular.module('admin',['admin-projects', 'admin-users']);

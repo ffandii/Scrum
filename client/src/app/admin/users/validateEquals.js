@@ -26,11 +26,11 @@ a validation directive to ensure that this model has the same value as some othe
                 });
 
                 ctrl.$parsers.push(function(viewValue){
-                    return validateEqual(viewValue, attrs.validateEquals);
+                    return validateEqual(viewValue, scope.$eval(attrs.validateEquals));
                 });
 
                 ctrl.$formatters.push(function(modelValue){
-                    return validateEqual(modelValue, attrs.validateEquals);
+                    return validateEqual(modelValue, scope.$eval(attrs.validateEquals));
                 });
 
             }

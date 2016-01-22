@@ -11,8 +11,8 @@ angular.module('mongolabResource',[]).factory('mongolabResource',['MONGOLAB_CONF
         }
 
         var thenFactoryMethod = function(httpPromise, successcb, errorcb, isArray){
-            var scb = successcb || angular.noop(); //null function
-            var ecb = errorcb || angular.noop();
+            var scb = successcb || angular.noop; //null function, 这里有一个bug，没注意到
+            var ecb = errorcb || angular.noop;
 
             return httpPromise.then(function(response){
                 var result;
@@ -28,7 +28,7 @@ angular.module('mongolabResource',[]).factory('mongolabResource',['MONGOLAB_CONF
                             collection: collectionName
                         });
                     } else {
-                        result = new Resource(response.data[i]);
+                        result = new Resource(response.data);
                     }
                 }
                 scb(result, response.status, response.headers, response.config);

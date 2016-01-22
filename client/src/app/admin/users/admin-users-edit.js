@@ -8,7 +8,7 @@ angular.module('admin-users-edit',[
 .controller('UsersEditCtrl',['$scope', '$location', 'i18nNotifications', 'user', function($scope, $location, i18nNotifications, user){
 
         $scope.user = user;
-        $scope.password = password;
+        $scope.password = user.password;
 
         $scope.onSave = function(user){
             i18nNotifications.pushForNextRoute('crud.user.save.success', 'success', { id : user.$id() });
@@ -16,7 +16,7 @@ angular.module('admin-users-edit',[
         };
 
         $scope.onError = function(){
-            i18nNotifications.pushForNextRoute('crud.user.save.error', 'error');
+            i18nNotifications.pushForCurrentRoute('crud.user.save.error', 'error');
         };
 
         $scope.onRemove = function(user){
