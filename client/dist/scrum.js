@@ -1,4 +1,4 @@
-/* scrum - v 0.0.1 - 2016-01-22 
+/* scrum - v 0.0.1 - 2016-01-23 
 https://github.com/ffandii/Scrum 
  * Copyright (c) 2016 ffandii 
 */
@@ -173,7 +173,7 @@ angular.module('admin-users', [
             })
             .whenEdit({
                 user : ['$route','Users', function($route, Users){
-                    return users.getById($route.current.params.itemId);
+                    return Users.getById($route.current.params.itemId);  //这里之前有一个bug
                 }],
                 currentUser : securityAuthorizationProvider.requireAdminUser
             });
@@ -1325,7 +1325,7 @@ angular.module('services.crud').factory('crudListMethods',['$location',function(
                 //creating a route that will handle editing an existing item
                 whenEdit : function(resolveFns){
                     routeBuilder.when(baseRoute +'/:itemId',{
-                        template : templateUrl('Edit'),
+                        templateUrl : templateUrl('Edit'),
                         controller : controllerName('Edit'),
                         resolve : resolveFns
                     });

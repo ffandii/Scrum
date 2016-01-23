@@ -63,7 +63,7 @@
                 //creating a route that will handle editing an existing item
                 whenEdit : function(resolveFns){
                     routeBuilder.when(baseRoute +'/:itemId',{
-                        template : templateUrl('Edit'),
+                        templateUrl : templateUrl('Edit'),  //少写了url这几个字
                         controller : controllerName('Edit'),
                         resolve : resolveFns
                     });

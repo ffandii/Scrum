@@ -20,7 +20,7 @@ angular.module('admin-users', [
             })
             .whenEdit({
                 user : ['$route','Users', function($route, Users){
-                    return users.getById($route.current.params.itemId);
+                    return Users.getById($route.current.params.itemId);  //这里之前有一个bug
                 }],
                 currentUser : securityAuthorizationProvider.requireAdminUser
             });
