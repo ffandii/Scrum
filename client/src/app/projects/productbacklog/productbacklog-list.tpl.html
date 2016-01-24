@@ -1,0 +1,24 @@
+<table class="table table-bordered table-condensed table-striped table-hover">
+    <thead>
+        <tr>
+            <th>名称</th>
+            <th>描述</th>
+            <th>优先权</th>
+            <th>评估</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr ng-repeat="backlogItem in backlog" ng-click="edit(backlogItem.$id())">
+            <td>{{backlogItem.name}}</td>
+            <td>{{backlogItem.desc}}</td>
+            <td>{{backlogItem.priority}}</td>
+            <td>{{backlogItem.estimation}}</td>
+        </tr>
+        <tr ng-show="!backlog.length()">
+            <td colspan="4">待办列表中尚无条目</td>
+        </tr>
+    </tbody>
+</table>
+<div class="well">
+    <button class="btn" ng-click="new">新建待办条目</button>
+</div>
