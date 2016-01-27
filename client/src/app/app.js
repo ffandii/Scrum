@@ -6,6 +6,7 @@ angular.module('app',[
 
     'ngRoute',
     'projectsInfo',
+    'projects',
     'admin',
     'services.breadcrumbs',
     'services.i18nNotifications',
