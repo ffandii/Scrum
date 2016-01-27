@@ -1,4 +1,4 @@
-/* scrum - v 0.0.1 - 2016-01-23 
+/* scrum - v 0.0.1 - 2016-01-27 
 https://github.com/ffandii/Scrum 
  * Copyright (c) 2016 ffandii 
 */
@@ -261,6 +261,7 @@ angular.module('app',[
 
     'ngRoute',
     'projectsInfo',
+    'projects',
     'admin',
     'services.breadcrumbs',
     'services.i18nNotifications',
@@ -353,6 +354,252 @@ angular.module('app').controller('HeaderCtrl', ['$scope','$location', '$route', 
 
         $scope.isAdminOpen = false;
 
+    }]);
+angular.module('productbacklog', ['resources.productBacklog','services.crud'])
+
+.config(['crudRouteProvider', function(crudRouteProvider){
+
+        var projectId = ['$route', function($route){
+            return $route.current.params.projectId;
+        }];
+
+        crudRouteProvider.routesFor('ProductBacklog','projects','projects/:projectId')
+            .whenList({
+                projectId : projectId,
+                backlog : ['$route','ProductBacklog',function($route, ProductBacklog){
+                    return ProductBacklog.forProject($route.current.params.projectId);
+                }]
+            })
+
+            .whenNew({  //create a new product backlog item route
+                projectId : projectId,
+                backlogItem : ['$route', 'ProductBacklog',function($route,ProductBacklog){
+                    return new ProductBacklog({projectId : $route.current.params.projectId});
+                }]
+            })
+            .whenEdit({
+                projectId : projectId,
+                backlogItem : ['$route','ProductBacklog', function($route, ProductBacklog){
+                    return ProductBacklog.getById($route.current.params.projectId);
+                }]
+            });
+
+    }])
+
+.controller('ProductBacklogListCtrl',['$scope','crudListMethods','projectId','backlog', function($scope,crudListMethods,projectsId, backlog){
+        $scope.backlog = backlog;
+        angular.extend($scope, crudListMethods('/projects/'+projectsId+'/productbacklog'));
+    }])
+
+.controller('ProductBacklogEditCtrl',['$scope','$location','projectId','backlogItem',function($scope,$location,projectId,backlogItem){
+
+        $scope.backlogItem = backlogItem;
+
+        $scope.onSave = function(){
+            $location.path('/projects/'+projectId+'/productbacklog');
+        };
+
+        $scope.onError = function(){
+            $scope.updateError = true;
+        };
+
+    }]);
+angular.module('projects', ['resources.projects', 'productbacklog', 'sprints', 'security.authorization'])
+
+    .config(['$routeProvider', 'securityAuthorizationProvider', function ($routeProvider, securityAuthorizationProvider) {
+        $routeProvider.when('/projects', {
+            templateUrl:'projects/projects-list.tpl.html',
+            controller:'ProjectsViewCtrl',
+            resolve:{
+                projects:['Projects', function (Projects) {
+                    //TODO: fetch only for the current user
+                    return Projects.all();
+                }],
+                authenticatedUser: securityAuthorizationProvider.requireAuthenticatedUser
+            }
+        });
+    }])
+
+    .controller('ProjectsViewCtrl', ['$scope', '$location', 'projects', 'security', function ($scope, $location, projects, security) {
+        $scope.projects = projects;
+
+        $scope.viewProject = function (project) {
+            $location.path('/projects/'+project.$id());
+        };
+
+        $scope.manageBacklog = function (project) {
+            $location.path('/projects/'+project.$id()+'/productbacklog');
+        };
+
+        $scope.manageSprints = function (project) {
+            $location.path('/projects/'+project.$id()+'/sprints');
+        };
+
+        $scope.getMyRoles = function(project) {
+            if ( security.currentUser ) {
+                return project.getRoles(security.currentUser.id);
+            }
+        };
+    }]);
+
+angular.module('sprints', ['resources.sprints', 'services.crud', 'tasks'])
+
+    .config(['crudRouteProvider', function(crudRouteProvider){
+
+        var projectId = ['$route', function($route) {
+            return $route.current.params.projectId;
+        }];
+
+        var productBacklog = ['$route', 'ProductBacklog', function ($route, ProductBacklog) {
+            return ProductBacklog.forProject($route.current.params.projectId);
+        }];
+
+        crudRouteProvider.routesFor('Sprints', 'projects', 'projects/:projectId')
+            .whenList({
+                projectId: projectId,
+                sprints: ['$route', 'Sprints', function($route, Sprints){
+                    return Sprints.forProject($route.current.params.projectId);
+                }]
+            })
+
+            .whenNew({
+                projectId: projectId,
+                sprint: ['$route', 'Sprints', function($route, Sprints){
+                    return new Sprints({projectId:$route.current.params.projectId});
+                }],
+                productBacklog : productBacklog
+            })
+
+            .whenEdit({
+                projectId: projectId,
+                sprint: ['$route', 'Sprints', function($route, Sprints){
+                    return Sprints.getById($route.current.params.itemId);
+                }],
+                productBacklog : productBacklog
+            });
+
+    }])
+
+    .controller('SprintsListCtrl', ['$scope', '$location', 'crudListMethods', 'projectId', 'sprints', function($scope, $location, crudListMethods, projectId, sprints){
+        $scope.sprints = sprints;
+
+        angular.extend($scope, crudListMethods('/projects/'+projectId+'/sprints'));
+
+        $scope.tasks = function (sprint) {
+            $location.path('/projects/'+projectId+'/sprints/'+sprint.$id()+'/tasks');
+        };
+    }])
+
+    .controller('SprintsEditCtrl', ['$scope', '$location', 'projectId', 'sprint', 'productBacklog', function($scope, $location, projectId, sprint, productBacklog){
+
+        $scope.productBacklog = productBacklog;
+        $scope.sprint = sprint;
+
+        $scope.onSave = function () {
+            $location.path('/projects/'+projectId+'/sprints');
+        };
+        $scope.onError = function () {
+            $scope.updateError = true;
+        };
+
+        $scope.sprint.sprintBacklog = $scope.sprint.sprintBacklog || [];
+
+        $scope.productBacklogLookup = {};
+        angular.forEach($scope.productBacklog, function (productBacklogItem) {
+            $scope.productBacklogLookup[productBacklogItem.$id()] = productBacklogItem;
+        });
+
+        $scope.viewProductBacklogItem = function (productBacklogItemId) {
+            $location.path('/projects/'+projectId+'/productbacklog/'+productBacklogItemId);
+        };
+
+        $scope.addBacklogItem = function (backlogItem) {
+            $scope.sprint.sprintBacklog.push(backlogItem.$id());
+        };
+
+        $scope.removeBacklogItem = function (backlogItemId) {
+            $scope.sprint.sprintBacklog.splice($scope.sprint.sprintBacklog.indexOf(backlogItemId),1);
+        };
+
+        $scope.estimationInTotal = function () {
+            var totalEstimation = 0;
+            angular.forEach(sprint.sprintBacklog, function (backlogItemId) {
+                totalEstimation += $scope.productBacklogLookup[backlogItemId].estimation;
+            });
+            return totalEstimation;
+        };
+
+        $scope.notSelected = function (productBacklogItem) {
+            return $scope.sprint.sprintBacklog.indexOf(productBacklogItem.$id())===-1;
+        };
+    }]);
+angular.module('tasks', ['resources.tasks', 'services.crud'])
+
+    .config(['crudRouteProvider', function (crudRouteProvider) {
+
+        var sprintBacklogItems = ['Sprints', 'ProductBacklog', '$route', function (Sprints, ProductBacklog, $route) {
+            var sprintPromise = Sprints.getById($route.current.params.sprintId);
+            return sprintPromise.then(function (sprint) {
+                return ProductBacklog.getByIds(sprint.sprintBacklog);
+            });
+        }];
+
+        var teamMembers = ['Projects', 'Users', '$route', function (Projects, Users, $route) {
+            var projectPromise = Projects.getById($route.current.params.projectId);
+            return projectPromise.then(function(project){
+                return Users.getByIds(project.teamMembers);
+            });
+        }];
+
+        crudRouteProvider.routesFor('Tasks', 'projects/sprints', 'projects/:projectId/sprints/:sprintId')
+
+            .whenList({
+                tasks:['Tasks', '$route', function (Tasks, $route) {
+                    return Tasks.forSprint($route.current.params.sprintId);
+                }]
+            })
+
+            .whenNew({
+                task:['Tasks', '$route', function (Tasks, $route) {
+                    return new Tasks({
+                        projectId:$route.current.params.projectId,
+                        sprintId:$route.current.params.sprintId,
+                        state:Tasks.statesEnum[0]
+                    });
+                }],
+                sprintBacklogItems:sprintBacklogItems,
+                teamMembers:teamMembers
+            })
+
+            .whenEdit({
+                task:['Tasks', '$route', function (Tasks, $route) {
+                    return Tasks.getById($route.current.params.itemId);
+                }],
+                sprintBacklogItems:sprintBacklogItems,
+                teamMembers:teamMembers
+            });
+    }])
+
+    .controller('TasksListCtrl', ['$scope', 'crudListMethods', '$route', 'tasks', function ($scope, crudListMethods, $route, tasks) {
+        $scope.tasks = tasks;
+
+        var projectId = $route.current.params.projectId;
+        var sprintId = $route.current.params.sprintId;
+        angular.extend($scope, crudListMethods('/projects/' + projectId + '/sprints/' + sprintId + '/tasks'));
+    }])
+
+    .controller('TasksEditCtrl', ['$scope', '$location', '$route', 'Tasks', 'sprintBacklogItems', 'teamMembers', 'task', function ($scope, $location, $route, Tasks, sprintBacklogItems, teamMembers, task) {
+        $scope.task = task;
+        $scope.statesEnum = Tasks.statesEnum;
+        $scope.sprintBacklogItems = sprintBacklogItems;
+        $scope.teamMembers = teamMembers;
+
+        $scope.onSave = function () {
+            $location.path('/admin/users');
+        };
+        $scope.onError = function() {
+            $scope.updateError = true;
+        };
     }]);
 angular.module('projectsInfo', [])
     .config(['$routeProvider',function($routeProvider){
@@ -727,6 +974,19 @@ angular.module('directives.gravatar',[])
         return md5;
 
     });
+angular.module('resources.productBacklog', ['mongolabResource']);  //待办列表
+
+angular.module('resources.productBacklog').factory('ProductBacklog', ['mongolabResource', function(mongolabResource){
+
+    var ProductBacklog = mongolabResource('productBacklog');  //产品待办列表
+
+    ProductBacklog.forProject = function(projectId){
+        return ProductBacklog.query({ projectId : projectId });
+    };
+
+    return ProductBacklog;
+
+}]);
 angular.module('resources.projects', ['mongolabResource']);
 
 angular.module('resources.projects').factory('Projects', ['mongolabResource',function(mongolabResource){
@@ -777,6 +1037,45 @@ angular.module('resources.projects').factory('Projects', ['mongolabResource',fun
     };
 
     return projects;
+
+}]);
+angular.module('resources.sprints', ['mongolabResource']);
+
+angular.module('resources.sprints').factory('Sprints',['mongolabResource', function(mongolabResource){
+
+    var Sprints =mongolabResource('sprints');
+
+    Sprints.forProject = function( projectId ){
+        return Sprints.query({ projectId : projectId});
+    };
+
+    return Sprints;
+
+}]);
+angular.module('resources.tasks', ['mongolabResource']);
+
+angular.module('resources.tasks').factory('Tasks', ['mongolabResource', function(mongolabResource){
+
+    var Tasks = mongolabResource('tasks');
+    Tasks.statesEnum = ['TODO','IN_DEV','BLOCKED','IN_TEST','DONE'];
+
+    Tasks.forProductBacklogItem = function(productBacklogItem){  //待办列表任务
+        return Tasks.query({productBacklogItem : productBacklogItem});
+    };
+
+    Tasks.forSprint = function(sprintId){  //冲刺任务
+        return Tasks.query({sprintId : sprintId});
+    };
+
+    Tasks.forUser = function(userId){  //开发人员任务
+        return Tasks.query({ userId : userId });
+    };
+
+    Tasks.forProject = function(projectId){
+        return Tasks.query({ projectId : projectId });
+    };
+
+    return Tasks;
 
 }]);
 angular.module('resources.users',['mongolabResource']);
@@ -1325,7 +1624,7 @@ angular.module('services.crud').factory('crudListMethods',['$location',function(
                 //creating a route that will handle editing an existing item
                 whenEdit : function(resolveFns){
                     routeBuilder.when(baseRoute +'/:itemId',{
-                        templateUrl : templateUrl('Edit'),
+                        templateUrl : templateUrl('Edit'),  //少写了url这几个字
                         controller : controllerName('Edit'),
                         resolve : resolveFns
                     });
@@ -1476,7 +1775,7 @@ angular.module('services.notifications',[])
         return notificationsService;
 
     }]);
-angular.module('templates.app', ['admin/projects/projects-edit.tpl.html', 'admin/projects/projects-list.tpl.html', 'admin/users/users-edit.tpl.html', 'admin/users/users-list.tpl.html', 'header.tpl.html', 'notifications.tpl.html', 'projectsInfo/list.tpl.html']);
+angular.module('templates.app', ['admin/projects/projects-edit.tpl.html', 'admin/projects/projects-list.tpl.html', 'admin/users/users-edit.tpl.html', 'admin/users/users-list.tpl.html', 'header.tpl.html', 'notifications.tpl.html', 'projects/productbacklog/productbacklog-edit.tpl.html', 'projects/productbacklog/productbacklog-list.tpl.html', 'projects/projects-list.tpl.html', 'projects/sprints/tasks/tasks-edit.tpl.html', 'projects/sprints/tasks/tasks-list.tpl.html', 'projectsInfo/list.tpl.html']);
 
 angular.module("admin/projects/projects-edit.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("admin/projects/projects-edit.tpl.html",
@@ -1651,6 +1950,137 @@ angular.module("notifications.tpl.html", []).run(["$templateCache", function($te
     "<div ng-class=\"['alert', 'alert-'+notification.type]\" ng-repeat=\"notification in notifications.getCurrent()\">\n" +
     "    <button class=\"close\" ng-click=\"removeNotification(notification)\">x</button>\n" +
     "    {{notification.message}}\n" +
+    "</div>");
+}]);
+
+angular.module("projects/productbacklog/productbacklog-edit.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("projects/productbacklog/productbacklog-edit.tpl.html",
+    "<div class=\"well\">\n" +
+    "    <h4>产品待办条目</h4>\n" +
+    "    <hr>\n" +
+    "    <form name=\"form\" crud-edit=\"backlogItem\">\n" +
+    "        <label>名称</label>\n" +
+    "        <input type=\"text\" name=\"name\" ng-model=\"backlogItem.name\" class=\"span10\" required autofocus/>\n" +
+    "        <label>用户故事</label>  <!-- 列表条目的体现形式为用户故事 -->\n" +
+    "        <textarea rows=\"8\" cols=\"10\" ng-model=\"backlogItem.desc\" class=\"span10\" required></textarea>\n" +
+    "        <label>优先权</label>\n" +
+    "        <input type=\"number\" ng-model=\"backlogItem.priority\" required/>\n" +
+    "        <label>评估</label>\n" +
+    "        <input type=\"number\" ng-model=\"backlogItem.estimation\" required/>\n" +
+    "        <hr>\n" +
+    "        <crud-buttons></crud-buttons>\n" +
+    "    </form>\n" +
+    "</div>");
+}]);
+
+angular.module("projects/productbacklog/productbacklog-list.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("projects/productbacklog/productbacklog-list.tpl.html",
+    "<table class=\"table table-bordered table-condensed table-striped table-hover\">\n" +
+    "    <thead>\n" +
+    "        <tr>\n" +
+    "            <th>名称</th>\n" +
+    "            <th>描述</th>\n" +
+    "            <th>优先权</th>\n" +
+    "            <th>评估</th>\n" +
+    "        </tr>\n" +
+    "    </thead>\n" +
+    "    <tbody>\n" +
+    "        <tr ng-repeat=\"backlogItem in backlog\" ng-click=\"edit(backlogItem.$id())\">\n" +
+    "            <td>{{backlogItem.name}}</td>\n" +
+    "            <td>{{backlogItem.desc}}</td>\n" +
+    "            <td>{{backlogItem.priority}}</td>\n" +
+    "            <td>{{backlogItem.estimation}}</td>\n" +
+    "        </tr>\n" +
+    "        <tr ng-show=\"!backlog.length()\">\n" +
+    "            <td colspan=\"4\">待办列表中尚无条目</td>\n" +
+    "        </tr>\n" +
+    "    </tbody>\n" +
+    "</table>\n" +
+    "<div class=\"well\">\n" +
+    "    <button class=\"btn\" ng-click=\"new\">新建待办条目</button>\n" +
+    "</div>");
+}]);
+
+angular.module("projects/projects-list.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("projects/projects-list.tpl.html",
+    "<table class=\"table table-bordered table-condensed table-striped table-hover\">\n" +
+    "    <thead>\n" +
+    "        <tr>\n" +
+    "            <th class=\"span3\">名称</th>\n" +
+    "            <th class=\"span5\">描述</th>\n" +
+    "            <th class=\"span2\">我的角色</th>\n" +
+    "            <th class=\"span2\">工具</th>\n" +
+    "        </tr>\n" +
+    "    </thead>\n" +
+    "    <tbody>\n" +
+    "        <tr ng-repeat=\"project in projects\">\n" +
+    "            <td ng-click=\"manageBacklog(project)\">{{project.name}}</td>\n" +
+    "            <td ng-click=\"manageBacklog(project)\">{{project.desc}}</td>\n" +
+    "            <td>{{getMyRoles(project)}}</td>\n" +
+    "            <td>\n" +
+    "                <a ng-click=\"manageBacklog(project)\">产品待办条目</a>\n" +
+    "                <a ng-click=\"manageSprints(project)\">冲刺（迭代）</a>\n" +
+    "            </td>\n" +
+    "        </tr>\n" +
+    "    </tbody>\n" +
+    "</table>");
+}]);
+
+angular.module("projects/sprints/tasks/tasks-edit.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("projects/sprints/tasks/tasks-edit.tpl.html",
+    "<div class=\"well\">\n" +
+    "    <div class=\"row-fluid\">\n" +
+    "        <form name=\"form\" crud-edit=\"task\">\n" +
+    "            <div class=\"span6\">\n" +
+    "                <label>任务名称</label>\n" +
+    "                <input type=\"text\" name=\"name\" ng-model=\"task.name\" class=\"span10\" required autofocus/>\n" +
+    "                <label>产品待办条目</label>\n" +
+    "                <select name=\"productBacklog\" class=\"span10\" ng-model=\"task.productBacklogItemId\" ng-options=\"backlogItem.$id() as backlogItem.name for backlogItem in sprintBacklogItems\" required></select>\n" +
+    "                <label>任务描述</label>\n" +
+    "                <textarea rows=\"8\" cols=\"10\" ng-model=\"task.desc\" class=\"span10\" required></textarea>\n" +
+    "            </div>\n" +
+    "            <div class=\"span6\">\n" +
+    "                <label>评估</label>\n" +
+    "                <input type=\"number\" name=\"estimation\" ng-model=\"task.estimation\" class=\"span5\" required/>\n" +
+    "                <label>保留</label>\n" +
+    "                <input type=\"number\" name=\"remaining\" ng-model=\"task.remaining\" class=\"span5\" required/>\n" +
+    "                <label>状态</label>\n" +
+    "                <select name=\"state\" ng-model=\"task.state\" class=\"span5\" required ng-options=\"state for state in statesEnum\"></select>\n" +
+    "                <label>分配给</label>\n" +
+    "                <select name=\"state\" ng-model=\"task.assignedUserId\" class=\"span10\" ng-model=\"task.assignedUserId\" class=\"span10\" ng-options=\"teamMember.$id() as teamMember.getFullName() for teamMember in teamMembers\"></select>\n" +
+    "            </div>\n" +
+    "        </form>\n" +
+    "    </div>\n" +
+    "    <hr>\n" +
+    "    <crud-buttons></crud-buttons>\n" +
+    "</div>");
+}]);
+
+angular.module("projects/sprints/tasks/tasks-list.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("projects/sprints/tasks/tasks-list.tpl.html",
+    "<table class=\"table table-bordered table-condensed table-striped table-hover\">\n" +
+    "    <thead>\n" +
+    "        <tr>\n" +
+    "            <th class=\"span8\">任务名称</th>\n" +
+    "            <th class=\"span1\">评估</th>\n" +
+    "            <th class=\"span1\">保留</th>\n" +
+    "            <th class=\"span2\">工具</th>\n" +
+    "        </tr>\n" +
+    "    </thead>\n" +
+    "    <tbody>\n" +
+    "        <tr ng-repeat=\"tast in tasks\">\n" +
+    "            <td ng-click=\"edit(task.$id())\">{{task.name}}</td>\n" +
+    "            <td>{{task.estimation}}</td>\n" +
+    "            <td>{{task.remaining}}</td>\n" +
+    "            <td></td>\n" +
+    "        </tr>\n" +
+    "        <tr ng-show=\"!tasks.length()\">\n" +
+    "            <td colspan=\"4\">这轮迭代（冲刺）尚无任务定义</td>\n" +
+    "        </tr>\n" +
+    "    </tbody>\n" +
+    "</table>\n" +
+    "<div class=\"well\">\n" +
+    "    <button class=\"btn\" ng-click=\"new()\">新建任务</button>\n" +
     "</div>");
 }]);
 

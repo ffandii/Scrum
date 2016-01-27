@@ -1,4 +1,4 @@
-angular.module('templates.app', ['admin/projects/projects-edit.tpl.html', 'admin/projects/projects-list.tpl.html', 'admin/users/users-edit.tpl.html', 'admin/users/users-list.tpl.html', 'header.tpl.html', 'notifications.tpl.html', 'projectsInfo/list.tpl.html']);
+angular.module('templates.app', ['admin/projects/projects-edit.tpl.html', 'admin/projects/projects-list.tpl.html', 'admin/users/users-edit.tpl.html', 'admin/users/users-list.tpl.html', 'header.tpl.html', 'notifications.tpl.html', 'projects/productbacklog/productbacklog-edit.tpl.html', 'projects/productbacklog/productbacklog-list.tpl.html', 'projects/projects-list.tpl.html', 'projects/sprints/tasks/tasks-edit.tpl.html', 'projects/sprints/tasks/tasks-list.tpl.html', 'projectsInfo/list.tpl.html']);
 
 angular.module("admin/projects/projects-edit.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("admin/projects/projects-edit.tpl.html",
@@ -173,6 +173,137 @@ angular.module("notifications.tpl.html", []).run(["$templateCache", function($te
     "<div ng-class=\"['alert', 'alert-'+notification.type]\" ng-repeat=\"notification in notifications.getCurrent()\">\n" +
     "    <button class=\"close\" ng-click=\"removeNotification(notification)\">x</button>\n" +
     "    {{notification.message}}\n" +
+    "</div>");
+}]);
+
+angular.module("projects/productbacklog/productbacklog-edit.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("projects/productbacklog/productbacklog-edit.tpl.html",
+    "<div class=\"well\">\n" +
+    "    <h4>产品待办条目</h4>\n" +
+    "    <hr>\n" +
+    "    <form name=\"form\" crud-edit=\"backlogItem\">\n" +
+    "        <label>名称</label>\n" +
+    "        <input type=\"text\" name=\"name\" ng-model=\"backlogItem.name\" class=\"span10\" required autofocus/>\n" +
+    "        <label>用户故事</label>  <!-- 列表条目的体现形式为用户故事 -->\n" +
+    "        <textarea rows=\"8\" cols=\"10\" ng-model=\"backlogItem.desc\" class=\"span10\" required></textarea>\n" +
+    "        <label>优先权</label>\n" +
+    "        <input type=\"number\" ng-model=\"backlogItem.priority\" required/>\n" +
+    "        <label>评估</label>\n" +
+    "        <input type=\"number\" ng-model=\"backlogItem.estimation\" required/>\n" +
+    "        <hr>\n" +
+    "        <crud-buttons></crud-buttons>\n" +
+    "    </form>\n" +
+    "</div>");
+}]);
+
+angular.module("projects/productbacklog/productbacklog-list.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("projects/productbacklog/productbacklog-list.tpl.html",
+    "<table class=\"table table-bordered table-condensed table-striped table-hover\">\n" +
+    "    <thead>\n" +
+    "        <tr>\n" +
+    "            <th>名称</th>\n" +
+    "            <th>描述</th>\n" +
+    "            <th>优先权</th>\n" +
+    "            <th>评估</th>\n" +
+    "        </tr>\n" +
+    "    </thead>\n" +
+    "    <tbody>\n" +
+    "        <tr ng-repeat=\"backlogItem in backlog\" ng-click=\"edit(backlogItem.$id())\">\n" +
+    "            <td>{{backlogItem.name}}</td>\n" +
+    "            <td>{{backlogItem.desc}}</td>\n" +
+    "            <td>{{backlogItem.priority}}</td>\n" +
+    "            <td>{{backlogItem.estimation}}</td>\n" +
+    "        </tr>\n" +
+    "        <tr ng-show=\"!backlog.length()\">\n" +
+    "            <td colspan=\"4\">待办列表中尚无条目</td>\n" +
+    "        </tr>\n" +
+    "    </tbody>\n" +
+    "</table>\n" +
+    "<div class=\"well\">\n" +
+    "    <button class=\"btn\" ng-click=\"new\">新建待办条目</button>\n" +
+    "</div>");
+}]);
+
+angular.module("projects/projects-list.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("projects/projects-list.tpl.html",
+    "<table class=\"table table-bordered table-condensed table-striped table-hover\">\n" +
+    "    <thead>\n" +
+    "        <tr>\n" +
+    "            <th class=\"span3\">名称</th>\n" +
+    "            <th class=\"span5\">描述</th>\n" +
+    "            <th class=\"span2\">我的角色</th>\n" +
+    "            <th class=\"span2\">工具</th>\n" +
+    "        </tr>\n" +
+    "    </thead>\n" +
+    "    <tbody>\n" +
+    "        <tr ng-repeat=\"project in projects\">\n" +
+    "            <td ng-click=\"manageBacklog(project)\">{{project.name}}</td>\n" +
+    "            <td ng-click=\"manageBacklog(project)\">{{project.desc}}</td>\n" +
+    "            <td>{{getMyRoles(project)}}</td>\n" +
+    "            <td>\n" +
+    "                <a ng-click=\"manageBacklog(project)\">产品待办条目</a>\n" +
+    "                <a ng-click=\"manageSprints(project)\">冲刺（迭代）</a>\n" +
+    "            </td>\n" +
+    "        </tr>\n" +
+    "    </tbody>\n" +
+    "</table>");
+}]);
+
+angular.module("projects/sprints/tasks/tasks-edit.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("projects/sprints/tasks/tasks-edit.tpl.html",
+    "<div class=\"well\">\n" +
+    "    <div class=\"row-fluid\">\n" +
+    "        <form name=\"form\" crud-edit=\"task\">\n" +
+    "            <div class=\"span6\">\n" +
+    "                <label>任务名称</label>\n" +
+    "                <input type=\"text\" name=\"name\" ng-model=\"task.name\" class=\"span10\" required autofocus/>\n" +
+    "                <label>产品待办条目</label>\n" +
+    "                <select name=\"productBacklog\" class=\"span10\" ng-model=\"task.productBacklogItemId\" ng-options=\"backlogItem.$id() as backlogItem.name for backlogItem in sprintBacklogItems\" required></select>\n" +
+    "                <label>任务描述</label>\n" +
+    "                <textarea rows=\"8\" cols=\"10\" ng-model=\"task.desc\" class=\"span10\" required></textarea>\n" +
+    "            </div>\n" +
+    "            <div class=\"span6\">\n" +
+    "                <label>评估</label>\n" +
+    "                <input type=\"number\" name=\"estimation\" ng-model=\"task.estimation\" class=\"span5\" required/>\n" +
+    "                <label>保留</label>\n" +
+    "                <input type=\"number\" name=\"remaining\" ng-model=\"task.remaining\" class=\"span5\" required/>\n" +
+    "                <label>状态</label>\n" +
+    "                <select name=\"state\" ng-model=\"task.state\" class=\"span5\" required ng-options=\"state for state in statesEnum\"></select>\n" +
+    "                <label>分配给</label>\n" +
+    "                <select name=\"state\" ng-model=\"task.assignedUserId\" class=\"span10\" ng-model=\"task.assignedUserId\" class=\"span10\" ng-options=\"teamMember.$id() as teamMember.getFullName() for teamMember in teamMembers\"></select>\n" +
+    "            </div>\n" +
+    "        </form>\n" +
+    "    </div>\n" +
+    "    <hr>\n" +
+    "    <crud-buttons></crud-buttons>\n" +
+    "</div>");
+}]);
+
+angular.module("projects/sprints/tasks/tasks-list.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("projects/sprints/tasks/tasks-list.tpl.html",
+    "<table class=\"table table-bordered table-condensed table-striped table-hover\">\n" +
+    "    <thead>\n" +
+    "        <tr>\n" +
+    "            <th class=\"span8\">任务名称</th>\n" +
+    "            <th class=\"span1\">评估</th>\n" +
+    "            <th class=\"span1\">保留</th>\n" +
+    "            <th class=\"span2\">工具</th>\n" +
+    "        </tr>\n" +
+    "    </thead>\n" +
+    "    <tbody>\n" +
+    "        <tr ng-repeat=\"tast in tasks\">\n" +
+    "            <td ng-click=\"edit(task.$id())\">{{task.name}}</td>\n" +
+    "            <td>{{task.estimation}}</td>\n" +
+    "            <td>{{task.remaining}}</td>\n" +
+    "            <td></td>\n" +
+    "        </tr>\n" +
+    "        <tr ng-show=\"!tasks.length()\">\n" +
+    "            <td colspan=\"4\">这轮迭代（冲刺）尚无任务定义</td>\n" +
+    "        </tr>\n" +
+    "    </tbody>\n" +
+    "</table>\n" +
+    "<div class=\"well\">\n" +
+    "    <button class=\"btn\" ng-click=\"new()\">新建任务</button>\n" +
     "</div>");
 }]);
 
