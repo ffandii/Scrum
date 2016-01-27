@@ -1,10 +1,28 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title></title>
-</head>
-<body>
-
-</body>
-</html>
+<table class="table table-bordered table-condensed table-striped table-hover">
+    <thead>
+    <tr>
+        <th>冲刺名称</th>
+        <th>起始日期</th>
+        <th>终止日期</th>
+        <th>状态</th>
+        <th>工具</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr ng-repeat="sprint in sprints">
+        <td ng-click="edit(sprint.$id())">{{sprint.name}}</td>
+        <td ng-click="edit(sprint.$id())">{{sprint.start}}</td>
+        <td ng-click="edit(sprint.$id())">{{sprint.end}}</td>
+        <td ng-click="edit(sprint.$id())">激活</td>
+        <td>
+            <button type="button" class="btn btn-mini" ng-click="tasks(sprint)">任务</button>
+        </td>
+    </tr>
+    <tr ng-show="!sprints.length">
+        <td colspan="5">尚无冲刺定义</td>
+    </tr>
+    </tbody>
+</table>
+<div class="well">
+    <button class="btn" ng-click="new()">新建冲刺</button>
+</div>

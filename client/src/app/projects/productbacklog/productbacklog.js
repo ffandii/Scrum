@@ -39,11 +39,11 @@ angular.module('productbacklog', ['resources.productBacklog','services.crud'])
         $scope.backlogItem = backlogItem;
 
         $scope.onSave = function(){
-            $location.path('/projects/'+projectId+'/productbacklog')
+            $location.path('/projects/'+projectId+'/productbacklog');
         };
 
         $scope.onError = function(){
             $scope.updateError = true;
-        }
+        };
 
     }]);

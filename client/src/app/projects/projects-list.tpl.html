@@ -1,10 +1,21 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title></title>
-</head>
-<body>
-
-</body>
-</html>
+<table class="table table-bordered table-condensed table-striped table-hover">
+    <thead>
+        <tr>
+            <th class="span3">名称</th>
+            <th class="span5">描述</th>
+            <th class="span2">我的角色</th>
+            <th class="span2">工具</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr ng-repeat="project in projects">
+            <td ng-click="manageBacklog(project)">{{project.name}}</td>
+            <td ng-click="manageBacklog(project)">{{project.desc}}</td>
+            <td>{{getMyRoles(project)}}</td>
+            <td>
+                <a ng-click="manageBacklog(project)">产品待办条目</a>
+                <a ng-click="manageSprints(project)">冲刺（迭代）</a>
+            </td>
+        </tr>
+    </tbody>
+</table>

@@ -1,10 +1,24 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title></title>
-</head>
-<body>
-
-</body>
-</html>
+<table class="table table-bordered table-condensed table-striped table-hover">
+    <thead>
+        <tr>
+            <th class="span8">任务名称</th>
+            <th class="span1">评估</th>
+            <th class="span1">保留</th>
+            <th class="span2">工具</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr ng-repeat="tast in tasks">
+            <td ng-click="edit(task.$id())">{{task.name}}</td>
+            <td>{{task.estimation}}</td>
+            <td>{{task.remaining}}</td>
+            <td></td>
+        </tr>
+        <tr ng-show="!tasks.length()">
+            <td colspan="4">这轮迭代（冲刺）尚无任务定义</td>
+        </tr>
+    </tbody>
+</table>
+<div class="well">
+    <button class="btn" ng-click="new()">新建任务</button>
+</div>
