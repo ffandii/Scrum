@@ -23,7 +23,7 @@ module.exports = function( grunt ){
     //初始化config对象
     grunt.initConfig({
 
-        distdir: "dist",
+        distdir: "dist",  //生产部署时的目录
 
         pkg: grunt.file.readJSON("package.json"),
 
@@ -35,21 +35,20 @@ module.exports = function( grunt ){
         src: {                                        //相应文件所在目录
             js: ['src/**/*.js'],
             jsTpl: ['<%= distdir %>/templates/**/*.js'],
-            specs: ['test/**/*.spec.js'],
-            scenarios: ['test/**/*.scenario.js'],
-            html: ['src/index.html'],
+            specs: ['test/**/*.spec.js'],  //运行karma runner时测试文件所在目录
+            html: ['src/index.html'],      //index.html
             tpl: {
                 app: ['src/app/**/*.tpl.html'],
-                common: ['src/common/**/*.tpl.html']
+                common: ['src/common/**/*.tpl.html']  //common中包含的为基础服务
             },
             less: ['src/less/stylesheet.less'],
             lessWatch: ['src/less/**/*.less']
         },
 
-        clean: ['<%= distdir %>/*'],  //test
+        clean: ['<%= distdir %>/*'],  //清除部署文件
 
         copy : {
-            assets: {  //test 复制assets资料
+            assets: {  // 复制assets资料
                 files: [{ dest: '<%= distdir %>', src: '**', expand: true, cwd: 'src/assets/' }]
             }
         },
@@ -59,14 +58,14 @@ module.exports = function( grunt ){
             watch: { options: karmaConfig('test/config/unit.js',{ singleRun: false, autoRun: true }) }
         },
 
-        html2js: {  //编译angularJS模板为javascript
+        html2js: {  //解析html模板为js文件，缓存在$templateCache中
             app: {
                 options: {
                     base: "src/app"  //app内的html模板编译到templates内的app.js
                 },
                 src: ['<%= src.tpl.app %>'],
                 dest: '<%= distdir %>/templates/app.js',
-                module: 'templates.app'
+                module: 'templates.app'  //定义为templates.app模块
             },
             common: {
                 options: {
@@ -74,7 +73,7 @@ module.exports = function( grunt ){
                 },
                 src: ['<%= src.tpl.common %>'],
                 dest: '<%= distdir %>/templates/common.js',
-                module: 'templates.common'
+                module: 'templates.common'  //定义为templates.common模块
             }
         },
 
@@ -111,7 +110,7 @@ module.exports = function( grunt ){
             }
         },
 
-        uglify: {  //tested uglify
+        uglify: {  //压缩相应的文件
             dist:{
                 options: {
                     banner: "<%= banner %>"
@@ -136,7 +135,7 @@ module.exports = function( grunt ){
                 dest: '<%= distdir %>/jquery.js'
             }
         },
-        recess: {  //recess:build has been tested
+        recess: {  //less文件转css文件 并压缩
             build: {
                 files: {
                     '<%= distdir %>/<%= pkg.name %>.css': ['<%= src.less %>']
@@ -154,8 +153,8 @@ module.exports = function( grunt ){
                 }
             }
         },
-        jshint: {  //test
-            files: ['gruntFile.js','<%= src.js %>','<%= src.jsTpl %>','<%= src.specs %>','<%= src.scenarios %>'],
+        jshint: {  //js语法检测 options为一些检测时的附加选项
+            files: ['gruntFile.js','<%= src.js %>','<%= src.jsTpl %>','<%= src.specs %>'],
             options: {
                 curly: true,
                 eqeqeq: true,
