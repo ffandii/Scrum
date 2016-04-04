@@ -21,7 +21,7 @@ var filterUser = function(user) {
 
 var security = {
     initialize: function(url, apiKey, dbName, authCollection) {
-        passport.use(new MongoStrategy(url, apiKey, dbName, authCollection));
+        passport.use(new MongoStrategy(url, apiKey, dbName, authCollection));  //passport使用mongostrategy策略
     },
     authenticationRequired: function(req, res, next) {
         console.log('authRequired');
@@ -56,7 +56,7 @@ var security = {
     },
     logout: function(req, res, next) {
         req.logout();
-        res.send(204);
+        res.send(204); //退出成功
     }
 };
 

@@ -6,9 +6,9 @@ module.exports = function( basePath, apiKey ){
 
     console.log("Proxying mongolab at ",basePath,'with',apiKey);
 
-    basePath = url.parse(basePath);
+    basePath = url.parse(basePath);  //解析为json对象
 
-    //map the request url to the mongolab url
+    //向服务器端的url映射到mongolab上的url
     var mapUrl = module.exports.mapUrl = function(reqUrlString){
         var reqUrl = url.parse(reqUrlString,true);
         var newUrl = {
@@ -20,7 +20,6 @@ module.exports = function( basePath, apiKey ){
             query[key] = reqUrl.query[key];
         }
 
-        //https request expects path not pathname
         newUrl.path = basePath.pathname + reqUrl.pathname + "?" + qs.stringify(query);
 
         return newUrl;
@@ -41,13 +40,12 @@ module.exports = function( basePath, apiKey ){
 
         try {
             var options = mapRequest(req);
-            //create the request to the db
+            //创建发往mongolab端的请求
             var dbReq = https.request(options,function(dbRes){
                 var data = "";
                 res.headers = dbRes.headers;
                 dbRes.setEncoding('utf8');
                 dbRes.on("data",function(chunk){
-                    //pass back any data from the response
                     data = data + chunk;
                 });
                 dbRes.on("end",function(){
@@ -55,12 +53,11 @@ module.exports = function( basePath, apiKey ){
                     res.statusCode = dbRes.statusCode;
                     res.httpVersion = dbRes.httpVersion;
                     res.trailers = dbRes.trailers;
-                    res.send(data);  //after set the header, then send the data
+                    res.send(data);  //置完请求头后接下来就是发送数据
                     res.end();
                 });
             });
-            dbReq.end(JSON.stringify(req.body));
-            //send any data that is passed from the original req
+            dbReq.end(JSON.stringify(req.body));  //发送请求体
         } catch( error ){
             console.log("ERROR: " + error.stack);
             res.json(error);

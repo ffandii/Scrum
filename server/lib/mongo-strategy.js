@@ -11,27 +11,26 @@ function MongoDBStrategy(dbUrl, apiKey, dbName, collection) {
     this.baseUrl = this.dbUrl + '/databases/' + this.dbName + '/collections/' + collection + '/';
 
     // Call the super constructor - passing in our user verification function
-    // We use the email field for the username
+    // 使用email作为登录时的username
     LocalStrategy.call(this, { usernameField: 'email' }, this.verifyUser.bind(this));
 
-    // Serialize the user into a string (id) for storing in the session
+    //序列化用户为一个id存储在session中
     passport.serializeUser(function(user, done) {
-        done(null, user._id.$oid); // Remember that MongoDB has this weird { _id: { $oid: 1234567 } } structure
+        done(null, user._id.$oid); //记住mongodb有这样的结构 { _id: { $oid: 1234567 } }
     });
 
-    // Deserialize the user from a string (id) into a user (via a cll to the DB)
+    // 通过一个string(id) 对用户反序列化为一个user对象 (通过一个发向DB的请求)
     passport.deserializeUser(this.get.bind(this));
 
-    // We want this strategy to have a nice name for use by passport, e.g. app.post('/login', passport.authenticate('mongo'));
     this.name = MongoDBStrategy.name;
 }
 
-// MongoDBStrategy inherits from LocalStrategy
+// MongoDBStrategy 继承自 LocalStrategy 拥有其方法
 util.inherits(MongoDBStrategy, LocalStrategy);
 
 MongoDBStrategy.name = "mongo";
 
-// Query the users collection
+// 查询users集合
 MongoDBStrategy.prototype.query = function(query, done) {
     query.apiKey = this.apiKey;     // Add the apiKey to the passed in query
     var request = rest.get(this.baseUrl, { qs: query, json: {} }, function(err, response, body) {
@@ -39,7 +38,7 @@ MongoDBStrategy.prototype.query = function(query, done) {
     });
 };
 
-// Get a user by id
+// 通过id获取用户  用于反序列化
 MongoDBStrategy.prototype.get = function(id, done) {
     var query = { apiKey: this.apiKey };
     var request = rest.get(this.baseUrl + id, { qs: query, json: {} }, function(err, response, body) {
@@ -47,7 +46,7 @@ MongoDBStrategy.prototype.get = function(id, done) {
     });
 };
 
-// Find a user by their email
+// 通过email查询一个用户
 MongoDBStrategy.prototype.findByEmail = function(email, done) {
     this.query({ q: JSON.stringify({email: email}) }, function(err, result) {
         if ( result && result.length === 1 ) {
@@ -57,7 +56,7 @@ MongoDBStrategy.prototype.findByEmail = function(email, done) {
     });
 };
 
-// Check whether the user passed in is a valid one
+// 检查user是否有效
 MongoDBStrategy.prototype.verifyUser = function(email, password, done) {
     this.findByEmail(email, function(err, user) {
         if (!err && user) {
@@ -70,14 +69,3 @@ MongoDBStrategy.prototype.verifyUser = function(email, password, done) {
 };
 
 module.exports = MongoDBStrategy;
-
-// TODO: Store hashes rather than passwords... node-bcrypt requires python to be installed :-(
-/*var bcrypt = require('bcrypt');
- function hashPassword(password) {
- return bcrypt.hashSync(password, bcrypt.genSaltSync());
- }
-
- function checkPassword(password, hash) {
- return bcrypt.compareSync(password, hash);
- }
- */

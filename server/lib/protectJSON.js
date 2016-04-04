@@ -4,7 +4,7 @@ module.exports = function(req,res,next){
         var contentType = res.getHeader('Content-Type');
         if(contentType && contentType.indexOf('application/json') !== -1){
             if(2 === arguments.length){
-                //res.send(body,status) backwards compat
+
                 if('number' !== typeof body && 'number' === typeof arguments[1]){
                     this.statusCode = arguments[1];
                 } else {

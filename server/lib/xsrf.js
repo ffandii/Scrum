@@ -8,9 +8,7 @@ function uid(len){
         .replace(/\+/g, '-');
 }
 
-//the xsrf middleware provide AngularJS style XSRF-TOKEN provision and validation
-//add it to your server configuration after the session configuration
-//app.user(xsrf)
+//配置好session()后再配置xsrf，防止跨域请求伪造
 
 module.exports = function(req, res, next){
 
