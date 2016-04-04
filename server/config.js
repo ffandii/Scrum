@@ -3,21 +3,21 @@ var path = require('path');
 module.exports = {
 
     mongo: {
-        dbUrl: "https://api.mongolab.com/api/1",  //the base url of the mongolab db server
-        apiKey: "4qKO9Qp3Y01ZopKm4Zf7wJSZ-8qLksKZ"  //our mongolab api key
+        dbUrl: "https://api.mongolab.com/api/1",  //mongolab端的基本url
+        apiKey: "4qKO9Qp3Y01ZopKm4Zf7wJSZ-8qLksKZ"  //在mongolab上建立数据库的apikey
     },
 
     security: {
-        dbName: "ffandii",  //the name of database that contains the security information
-        usersCollection: "users"  //the name of the collection that contains the user information
+        dbName: "ffandii",  //数据库名
+        usersCollection: "users"  //开发人员的集合
     },
 
     server: {
-        listenPort: 3000,  //the port on which the server is to listen
-        securePort: 8433,  //the https port on which the serve is to listen
-        disFolder: path.resolve(__dirname,'../client/dist'),  //the folder that contains the application file
-        staticUrl: '/static',  //base url in which we serve static files
-        cookieSecret: "Scrum"  //the secret for encrypting the cookie
+        listenPort: 3000,  //服务器端监听的http端口
+        securePort: 8433,  //服务器端监听的https端口
+        disFolder: path.resolve(__dirname,'../client/dist'),  //生产部署时的目录
+        staticUrl: '/static',  //处理静态文件时的请求路径
+        cookieSecret: "Scrum"  //用于cookie加密
     }
 
 };

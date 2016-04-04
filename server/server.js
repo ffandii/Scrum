@@ -6,12 +6,12 @@ var certificate = fs.readFileSync(__dirname + '/cert/certificate.pem').toString(
 var credentials = { key: privateKey, cert : certificate };
 
 var express = require('express');
-var mongoProxy = require('./lib/mongo-proxy');
+var mongoProxy = require('./lib/mongo-proxy'); //和mongolab交互时的代理
 var config = require('./config');
-var passport = require('passport');
+var passport = require('passport');  //nodejs中做登录验证的中间件
 var security = require('./lib/security');
-var xsrf = require('./lib/xsrf');
-var protectJSON = require('./lib/protectJSON');
+var xsrf = require('./lib/xsrf');  // XSRF / CSRF 跨站请求伪造
+var protectJSON = require('./lib/protectJSON');  //防止json注入攻击
 
 require('express-namespace');
 
@@ -19,16 +19,16 @@ var app = express();
 var secureServer = https.createServer(credentials, app);
 var server = http.createServer(app);
 
-require('./lib/routes/static').addRoutes(app,config);
+require('./lib/routes/static').addRoutes(app,config); //配置静态文件的路由 express.static
 
 app.use(protectJSON);
 
 app.use(express.logger());  //在控制台记录请求
 app.use(express.bodyParser());  //解析请求体中的数据
-app.use(express.cookieParser(config.server.cookieSecret));  //cookieSecret用于加密
+app.use(express.cookieParser(config.server.cookieSecret));  //cookieSecret用于加密cookie
 app.use(express.cookieSession());
-app.use(passport.initialize());
-app.use(passport.session());
+app.use(passport.initialize());  //passport初始化
+app.use(passport.session());     //用开启session管理用户
 app.use(xsrf);
 security.initialize(config.mongo.dbUrl,config.mongo.apiKey,config.security.dbName,config.security.usersCollection);
 
@@ -44,7 +44,7 @@ app.use(function(req, res, next){
 app.namespace('/databases/:db/collections/:collection*',function(){
     app.all('/',function(req,res,next){
         if(req.method !== 'GET'){
-            //we require the user to be authenticated to modify any collections
+            //非get请求时用户需要被authenticated
             security.authenticationRequired(req, res, next);
         } else {
             next();
@@ -53,12 +53,12 @@ app.namespace('/databases/:db/collections/:collection*',function(){
 
     app.all('/',function(req, res, next){
         if(req.method !== 'GET' && (req.params.collection === 'users' || req.params.collection === 'projects')){
-            //we require the current user to be a admin to modify any collection
+            //对users或projects集合进行非get操作时，用户需要被admin
             return security.adminRequired(req, res, next);
         }
         next();
     });
-    //proxy database calls to mongodb
+    //代理客户端和mongolab的交互
     app.all('/',mongoProxy(config.mongo.dbUrl,config.mongo.apiKey));
 });
 
