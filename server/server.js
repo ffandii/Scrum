@@ -23,9 +23,9 @@ require('./lib/routes/static').addRoutes(app,config);
 
 app.use(protectJSON);
 
-app.use(express.logger());  //log request to the console
-app.use(express.bodyParser());  //extract data from the body of the request
-app.use(express.cookieParser(config.server.cookieSecret));
+app.use(express.logger());  //在控制台记录请求
+app.use(express.bodyParser());  //解析请求体中的数据
+app.use(express.cookieParser(config.server.cookieSecret));  //cookieSecret用于加密
 app.use(express.cookieSession());
 app.use(passport.initialize());
 app.use(passport.session());
