@@ -3,10 +3,10 @@ exports.addRoutes = function(app, security){
     app.post('/login',security.login);
     app.post('/logout',security.logout);
 
-    //retrieve the current user
+    //获取当前用户
     app.get('/current-user',security.sendCurrentUser);
 
-    //retrieve the current user only if they are authenticated
+    //获取authenticated-user 或者 admin-user
     app.get('/authenticated-user', function(req, res){
         security.authenticationRequired(req, res, function(){
             security.sendCurrentUser(req, res);

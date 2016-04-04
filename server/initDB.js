@@ -4,5 +4,5 @@ console.log("Configuration: \n", config);
 
 initDB.initialize(config);
 
-initDB.addAdminUser(function(){  // init the origin administrator
+initDB.addAdminUser(function(){  // 初始化数据库的管理员
 });

@@ -62,13 +62,13 @@ app.namespace('/databases/:db/collections/:collection*',function(){
     app.all('/',mongoProxy(config.mongo.dbUrl,config.mongo.apiKey));
 });
 
-require('./lib/routes/security').addRoutes(app,security);
-require('./lib/routes/appFile').addRoutes(app,config);
+require('./lib/routes/security').addRoutes(app,security);  //定义与mongolab交互时的路由
+require('./lib/routes/appFile').addRoutes(app,config);  //对/*请求发送index.html，这样来处理单页面内的路由
 
-//a standard error handler --- it picks up any left over errors and returns a nicely formatted 500 error
+//express中一个标准的错误句柄 --- 捕获遗漏的错误，返回500错误
 app.use(express.errorHandler({dumpExceprions: true, showStack: true}));
 
-//start up the server on the specified port in the config
+//开启服务器
 server.listen(config.server.listenPort,'0.0.0.0',511,function(){
     var open = require('open');
     open('http://localhost:'+config.server.listenPort+'/');

@@ -3,17 +3,12 @@
 module.exports = function(grunt) {
 
     grunt.loadNpmTasks('grunt-contrib-jshint');
-    grunt.loadNpmTasks('grunt-contrib-nodeunit');
 
-    // Project configuration.
+    // 项目的配置.
     grunt.initConfig({
-        nodeunit: ['test/**/*.js'],
-        watch: {
-            files: '<config:lint.files>',
-            tasks: 'default timestamp'
-        },
+
         jshint: {
-            files: ['gruntFile.js', 'server.js', 'lib/*.js', 'test/**/*.js'],
+            files: ['gruntFile.js', 'server.js', 'lib/*.js'],
             options: {
                 curly: true,
                 eqeqeq: true,
@@ -30,15 +25,6 @@ module.exports = function(grunt) {
         }
     });
 
-    // Default task.
-    grunt.registerTask('default', ['jshint','nodeunit']);
-
-    grunt.registerTask('timestamp', function() {
-        grunt.log.subhead(Date());
-    });
-
-    grunt.registerTask('supervise', function() {
-        this.async();
-        require('supervisor').run(['server.js']);
-    });
+    // 默认的任务.
+    grunt.registerTask('default', ['jshint']);
 };
