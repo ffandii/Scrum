@@ -3,7 +3,7 @@ angular.module('resources.tasks', ['mongolabResource']);
 angular.module('resources.tasks').factory('Tasks', ['mongolabResource', function(mongolabResource){
 
     var Tasks = mongolabResource('tasks');
-    Tasks.statesEnum = ['TODO','IN_DEV','BLOCKED','IN_TEST','DONE'];
+    Tasks.statesEnum = ['TODO','IN_DEV','BLOCKED','IN_TEST','DONE'];  //任务进度
 
     Tasks.forProductBacklogItem = function(productBacklogItem){  //待办列表任务
         return Tasks.query({productBacklogItem : productBacklogItem});

@@ -19,7 +19,7 @@ angular.module('app',[
 
 ]);
 
-angular.module('app').constant('MONGOLAB_CONFIG',{  //connect ongodb config
+angular.module('app').constant('MONGOLAB_CONFIG',{  //connect mongodb config
     baseUrl: '/databases/',
     dbName: 'ffandii'
 });
