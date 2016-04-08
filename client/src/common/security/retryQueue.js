@@ -14,7 +14,7 @@ angular.module('security.retryQueue', [])
 
             push : function( retryItem ) {
                 retryQueue.push( retryItem );
-                //call all the onItemAdded callbacks
+                //调用所有的 onItemAdded callbacks
                 angular.forEach( service.onItemAddedCallbacks, function( cb ){
                     try {
                         cb( retryItem );
@@ -38,14 +38,14 @@ angular.module('security.retryQueue', [])
                     retry : function(){
                         //wrap the result of the retryFn into a promise if it is not already
                         $q.when(retryFn()).then(function(value){
-                            //if it was successful, then resolve our deferred
+
                             deferred.resolve(value);
                         }, function(value){
-                            //otherwise reject it
+
                             deferred.reject(value);
                         });
                     },
-                    //give up our retrying and reject our deferred
+                    //reject未来的状态
                     cancel : function(){
                         deferred.reject();
                     }

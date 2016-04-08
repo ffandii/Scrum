@@ -1,8 +1,8 @@
 //based loosely around work by Witold Szczerba
 angular.module('security.service',[
-    'security.retryQueue',  //keeps track of the failed requests that need to be retried once the user logs in
-    'security.login',       //contains the login form templates and controller
-    'ui.bootstrap.dialog'   //used to display the login form as a modal dialog
+    'security.retryQueue',  //跟踪失败的请求，在用户login后重试
+    'security.login',       //含有登录时的表格模板和控制器
+    'ui.bootstrap.dialog'   //利用弹出对话框形式展示登录表格
 ])
 
 .factory('security', ['$http', '$q', '$location', 'securityRetryQueue', '$dialog', function( $http, $q, $location, queue, $dialog ){
@@ -74,13 +74,12 @@ angular.module('security.service',[
 
             },
 
-            //give up trying to login and clear the retry queue
+            //放弃重试，更新retry队列
             cancelLogin : function(){
                 closeLoginDialog(false);
                 redirect();
             },
 
-            //logout the current user and redirect
             logout : function(redirectTo){
                 $http.post('/logout').then(function(){
                     service.currentUser = null;
@@ -88,7 +87,7 @@ angular.module('security.service',[
                 });
             },
 
-            //ask the backend to see if a user is already authenticated -- this may be from a previous session
+            //获取当前的用户，可能存在于之前的session中
             requestCurrentUser : function(){
                 if(service.isAuthenticated()){
                     return $q.when(service.currentUser);  //传值服务

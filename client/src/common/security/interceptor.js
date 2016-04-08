@@ -1,18 +1,18 @@
 //注入$httpProvider服务的响应拦截器
 angular.module('security.interceptor', ['security.retryQueue'])
 
-//this http interceptor listens for authentication failures
+//http拦截器监听授权失败的情形
 
     .factory('securityInterceptor',['$injector','securityRetryQueue',function($injector,queue){
 
         return function(promise){
 
-            //intercept failed requests
+            //中断失败的请求
             return promise.then(null, function( originalResponse ){
 
                 if( originalResponse.status === 401 ){
                     promise = queue.pushRetryFn('unauthorized-server', function retryRequest(){
-                        //we must use $inject to get the $http service to prevent circular dependency
+                        //利用$injector获取$http服务，防止循环依赖
                         return $injector.get('$http')(originalResponse.config);
 
                     });
@@ -31,4 +31,3 @@ angular.module('security.interceptor', ['security.retryQueue'])
         $httpProvider.responseInterceptors.push('securityInterceptor');
 
     }]);
-

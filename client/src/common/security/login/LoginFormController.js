@@ -31,14 +31,14 @@ angular.module('security.login.form', ['services.localizedMessages'])
                 $scope.authError = localizedMessages.get('login.error.serverError', { exception : x });
             });
 
+        };
 
-            $scope.clearForm = function(){
-                $scope.user = {};
-            };
+        $scope.clearForm = function(){
+            $scope.user = {};
+        };
 
-            $scope.cancelLogin = function(){
-                security.cancelLogin();
-            };
+        $scope.cancelLogin = function(){
+            security.cancelLogin();
         };
 
     }]);

@@ -1,4 +1,4 @@
-/* scrum - v 0.0.1 - 2016-01-27 
+/* scrum - v 0.0.1 - 2016-04-08 
 https://github.com/ffandii/Scrum 
  * Copyright (c) 2016 ffandii 
 */
@@ -274,7 +274,7 @@ angular.module('app',[
 
 ]);
 
-angular.module('app').constant('MONGOLAB_CONFIG',{  //connect ongodb config
+angular.module('app').constant('MONGOLAB_CONFIG',{  //connect mongodb config
     baseUrl: '/databases/',
     dbName: 'ffandii'
 });
@@ -1057,7 +1057,7 @@ angular.module('resources.tasks', ['mongolabResource']);
 angular.module('resources.tasks').factory('Tasks', ['mongolabResource', function(mongolabResource){
 
     var Tasks = mongolabResource('tasks');
-    Tasks.statesEnum = ['TODO','IN_DEV','BLOCKED','IN_TEST','DONE'];
+    Tasks.statesEnum = ['TODO','IN_DEV','BLOCKED','IN_TEST','DONE'];  //任务进度
 
     Tasks.forProductBacklogItem = function(productBacklogItem){  //待办列表任务
         return Tasks.query({productBacklogItem : productBacklogItem});
@@ -1137,6 +1137,7 @@ angular.module('security.authorization', ['security.service'])
         }]
 
     });
+//通过这种形式，合并各个模块，然后各个模块间的服务也可以相互引用
 angular.module('security',[
     'security.service',
     'security.interceptor',
@@ -1211,14 +1212,14 @@ angular.module('security.login.form', ['services.localizedMessages'])
                 $scope.authError = localizedMessages.get('login.error.serverError', { exception : x });
             });
 
+        };
 
-            $scope.clearForm = function(){
-                $scope.user = {};
-            };
+        $scope.clearForm = function(){
+            $scope.user = {};
+        };
 
-            $scope.cancelLogin = function(){
-                security.cancelLogin();
-            };
+        $scope.cancelLogin = function(){
+            security.cancelLogin();
         };
 
     }]);
@@ -2086,12 +2087,69 @@ angular.module("projects/sprints/tasks/tasks-list.tpl.html", []).run(["$template
 
 angular.module("projectsInfo/list.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("projectsInfo/list.tpl.html",
-    "<h3>Scrum是一个用于开发和维持复杂产品的框架</h3>\n" +
-    "<p>Scrum是一个用于开发和维持复杂产品的框架，是一个增量的、迭代的开发过程。在这个框架中，整个开发过程由若干个短的迭代周期组成，一个短的\n" +
-    "迭代周期称为一个Sprint，每个Sprint的建议长度是2到4周（互联网产品的研发可以使用1周的Sprint）。在Scrum中，使用产品Backlog来管理产品的需\n" +
-    "求，产品backlog是一个按照商业价值排序的需求列表，列表条目的体现通常为用户故事。Scrum团队总是先开发对客户具有较高价值的需求。在Sprint中，\n" +
-    "Scrum团队从产品backlog中挑选最高优先级的需求进行开发。挑选的需求在Scrum计划会议上进过讨论、分析和估算得到相应的任务列表，我们称它为Sprint\n" +
-    "backlog。在每个迭代结束时，Scrum团队将递交潜在可支付的产品增量，Scrum起源于软件开发项目，但它适用于任何复杂的或者创新性的项目。</p>");
+    "<h3>Scrum</h3>\n" +
+    "<p>\n" +
+    "    敏捷开发时一种以人为核心、迭代、循环渐进的开发方式。\n" +
+    "    怎么理解呢？首先，我们要理解它不是一门技术，它是一种开发方法，也就是一种软件开发的流程，它会指导我们用规定的环节一步一步来完成项目的开发。\n" +
+    "    而这种开发方式的主要驱动核心为人，它采用的是迭代式开发。\n" +
+    "</p>\n" +
+    "\n" +
+    "<h3>为什么说是以人为本？</h3>\n" +
+    "<p>\n" +
+    "    我们大部分人都学过瀑布开发模式，它是以文档为驱动的，为什么呢？因为在瀑布的整个开发过程中，要写大量的文档，把需求文档写出来后，开发人员\n" +
+    "    都是根据文档进行开发的，一切以文档为依据；而敏捷开发它只写有必要的文档，或者尽量少些文档，敏捷开发注重的是人与人之间，面对面的交流，所以\n" +
+    "    它强调的是以人为核心。\n" +
+    "</p>\n" +
+    "\n" +
+    "<h3>什么是迭代？</h3>\n" +
+    "<p>\n" +
+    "    迭代是指把一个复杂且开发周期很长的开发任务，分解成为很多小的周期内可完成的任务，这样的一个周期就是一个迭代的过程；同时，每一次迭代，都可以\n" +
+    "    生成或开发出可以交付的软件产品。\n" +
+    "</p>\n" +
+    "\n" +
+    "<h3>scrum开发中的三大角色</h3>\n" +
+    "\n" +
+    "<p>\n" +
+    "    产品负责人（Product Owner）\n" +
+    "    主要负责确定产品的功能和达到要求的标准，指定软件的发布日期和交付的内容，同时有权利接受或拒绝开发团队的开发成果。\n" +
+    "\n" +
+    "    流程管理员（Scrum Master）\n" +
+    "    主要负责Scrum流程在整个项目中的顺利实施和完成，以及清除挡在客户和开发工作之间的障碍，使得客户可以直接驱动开发。\n" +
+    "\n" +
+    "    开发团队（Scrum Team）\n" +
+    "    主要负责软件产品在Scrum规定流程下进行开发工作，人数控制在5~10人之间，每个成员可能负责不同的技术方面，但要求成员必须有很强的自我管理能力，\n" +
+    "    同时具备一定的表达能力，成员可以采用任何工作方式，只要达到Sprint目标。\n" +
+    "</p>\n" +
+    "\n" +
+    "<h3>如何进行Scrum开发</h3>\n" +
+    "<p>\n" +
+    "    1.我们首先需要确定一个Product Backlog（按优先顺序排列的一个产品需求列表），这个由Product Owner来负责。\n" +
+    "\n" +
+    "    2.Scrum团队根据Product需求列表，做工作量的预估和安排。\n" +
+    "\n" +
+    "    3.有了Product Backlog列表，我们需要通过Sprint计划会议来挑选一个Story作为本次迭代要完成的目标，这个目标的时间周期为1~4个星期，然后把\n" +
+    "    这个Story进行细化，形成一个Sprint Backlog。\n" +
+    "\n" +
+    "    4.Sprint Backlog是由Scrum Team去完成的，每个成员再根据Sprint Backlog细化为更小的任务（细到每个任务的工作量在2天内完成）。\n" +
+    "\n" +
+    "    5.在Scrum Team完成计划会议上挑选出来的Sprint Backlog过程中，需要进行每日站立会议，每次会议控制在15分钟，每个人都必须发言，并且向所有\n" +
+    "    成员当面汇报你今天做了什么，并且向所有成员汇报你今天要完成什么，同时遇到不能解决的问题也能提出，每个人回答完成后要走到黑板前更新自己的\n" +
+    "    Sprint燃尽图。\n" +
+    "\n" +
+    "    6.做到每日集成，也就是每天都要有一个可以成功编译、可以演示的版本，\n" +
+    "\n" +
+    "    8.当一个Story也就是一个Sprint完成时，要进行演示会议，也称为评审会议，产品负责人和客户都要参加，每个成员都要向他们演示自己完成的软件产品。\n" +
+    "\n" +
+    "    9.最后就是进行Sprint回顾会议，也就是总结会议，以轮流发言方式进行，每个人都要发言，总结并且改进不足之处，放入下一轮Sprint的产品需求中。\n" +
+    "</p>\n" +
+    "\n" +
+    "\n" +
+    "\n" +
+    "\n" +
+    "\n" +
+    "\n" +
+    "\n" +
+    "");
 }]);
 
 angular.module('templates.common', ['security/login/form.tpl.html', 'security/login/toolbar.tpl.html']);

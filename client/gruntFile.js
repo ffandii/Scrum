@@ -11,7 +11,7 @@ module.exports = function( grunt ){
     grunt.loadNpmTasks('grunt-karma');
     grunt.loadNpmTasks('grunt-recess');
 
-    grunt.registerTask('default', ['jshint','build','karma:unit']);
+    grunt.registerTask('default', ['jshint','build']);
     grunt.registerTask('build', ['clean','html2js','concat','recess:build','copy:assets']);
 
     var karmaConfig = function(configFile, customOptions) {
@@ -51,11 +51,6 @@ module.exports = function( grunt ){
             assets: {  // 复制assets资料
                 files: [{ dest: '<%= distdir %>', src: '**', expand: true, cwd: 'src/assets/' }]
             }
-        },
-
-        karma: {  //运行jasmine测试
-            unit: { options: karmaConfig('test/config/unit.js') },
-            watch: { options: karmaConfig('test/config/unit.js',{ singleRun: false, autoRun: true }) }
         },
 
         html2js: {  //解析html模板为js文件，缓存在$templateCache中

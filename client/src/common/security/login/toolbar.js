@@ -1,8 +1,5 @@
 angular.module('security.login.toolbar',[])
 
-//the login toolToolbar directive is a reusable widget that can show login or logout button
-//and information the current authenticated user
-
     .directive('loginToolbar', ['security', function(security){  //指令中提供的字段选项都是可选的
 
         var directive = {
