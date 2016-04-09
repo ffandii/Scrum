@@ -7,8 +7,7 @@ angular.module('services.breadcrumbs',[])
         var breadcrumbs = [];
         var breadcrumbsService = {};
 
-        //we only want to update a breadcrumbs only when a route is actually changed
-        //as $location.path will get updated immediately
+        //路由变化时更新面包屑导航
 
         $rootScope.$on('$routeChangeSuccess',function( event, current ){
 

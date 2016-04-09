@@ -2,47 +2,36 @@
 
     function crudRouteProvider($routeProvider){
 
-        //this $get noop is because at the moment in angularjs "providers" must provide something
-        //via a $get method
-        //when angularjs has "provide helpers" then this will go away
+        //angularjs的provides必须要提供一些东西
         this.$get = angular.noop;
 
-        //in any case the point is that this function is the key part of this "provider helper"
-        //we use it to create routes for CRUD operations.we give it some basic information about the resource and the urls
-        // then it returns our own special routesProvider
+        //函数是定义服务的主要方式
+        //用这个服务创造crud操作的路由.需要给定关于url和route的基本信息
         this.routesFor = function( resourceName, urlPrefix, routePrefix ){
 
             var baseUrl = resourceName.toLowerCase();
             var baseRoute = '/' + resourceName.toLowerCase();
             routePrefix = routePrefix || urlPrefix;
 
-            //prepend the urlPrefix if it is available
             if( angular.isString(urlPrefix) && urlPrefix !== "" ){
                 baseUrl = urlPrefix + "/" + baseUrl;
             }
 
-            //prepend the routePrefix if it is provided
             if( routePrefix !== null &&  routePrefix !== undefined && routePrefix !== ""){
                 baseRoute = '/' + routePrefix + baseRoute;
             }
 
-            //create the template url for a route to our resource that does the specified operation
-            var templateUrl = function(operation){                    //这里漏掉了toLowerCase
+            var templateUrl = function(operation){ //返回模板文件的名字
                 return baseUrl + '/' + resourceName.toLowerCase() + '-' + operation.toLowerCase() + '.tpl.html';
             };
 
-            //create the controller name for a route to our resource that does the specified operation
-            var controllerName = function(operation){
+            var controllerName = function(operation){  //返回控制器的名字
                 return resourceName + operation + 'Ctrl';
             };
 
-            //this is the object that our 'RouteFor() function returns. it decorate $routeProvider
-            //delegate the when() and otherwise() functions but also exposing some new functions for
-            //creating new crud routes
-
             var routeBuilder = {
 
-                //create a route that will showing a list of items
+                //创建一个路由用于list items
                 whenList : function(resolveFns){
                     routeBuilder.when(baseRoute,{
                         templateUrl : templateUrl('List'),
@@ -51,7 +40,7 @@
                     });
                     return routeBuilder;
                 },
-                //creating a route that will handle creating a new item
+                //创建一个路由来创建item
                 whenNew : function(resolveFns){
                     routeBuilder.when(baseRoute+'/new',{
                         templateUrl : templateUrl('Edit'),
@@ -60,7 +49,7 @@
                     });
                     return routeBuilder;
                 },
-                //creating a route that will handle editing an existing item
+                //创建一个路由来编辑已经存在的item
                 whenEdit : function(resolveFns){
                     routeBuilder.when(baseRoute +'/:itemId',{
                         templateUrl : templateUrl('Edit'),  //少写了url这几个字
@@ -86,9 +75,9 @@
 
     }
 
-    crudRouteProvider.$injector = ['$routeProvider'];
+    crudRouteProvider.$injector = ['$routeProvider'];  //通过$injector注入依赖的服务
 
-    angular.module('services.crudRouteProvider',['ngRoute']).provider('crudRoute',crudRouteProvider);
+    angular.module('services.crudRouteProvider',['ngRoute']).provider('crudRoute',crudRouteProvider);  //注册模块
 
 
 })();

@@ -1,21 +1,21 @@
 angular.module('directives.crud.edit', [])
 
-//apply this directive to an element at or below a form that will manage crud operations on a resource
-//the resource must expose the following instance methods: $saveOrUpdate() $id() and $remove()
+//把这样一个指令添加到form元素或者其内， 将会管理资源上的crud操作
+//资源必须暴露以下这些方法: $saveOrUpdate() $id() and $remove()
 
 .directive('crudEdit', ['$parse', function($parse){
 
         return {
 
             scope : true,
-            require : "^form",
-            //this directive can only appear as an attribute
+            require : "^form",  //设置要注入当前指令链接函数中的其他指令的控制器
+            //这个指令只能作为一个属性出现
             link : function(scope,element,attrs,form){
 
-                var resourceGetter = $parse(attrs.crudEdit);
-                var resourceSetter = resourceGetter.assign;
+                var resourceGetter = $parse(attrs.crudEdit);  //获取的对象
+                var resourceSetter = resourceGetter.assign;   //用于设置该对象
                 //store the object for easy access
-                var resource = resourceGetter(scope);
+                var resource = resourceGetter(scope);  //整个scope作用域中包含的资源
                 var original = angular.copy(resource);
 
                 var checkResourceMethod = function(methodName){
@@ -30,7 +30,7 @@ angular.module('directives.crud.edit', [])
 
                 //该功能可以帮助我们从指令属性中提取命令函数
                 var makeFn = function(attrName){
-                    var fn = scope.$eval(attrs[attrName]);
+                    var fn = scope.$eval(attrs[attrName]);  //引入需要的函数
                     if(!angular.isFunction(fn)){
                         throw new Error('crudEdit directive: the attribute '+attrName+" must evaluate to a function");
                     }
