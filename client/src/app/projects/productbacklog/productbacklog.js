@@ -23,7 +23,7 @@ angular.module('productbacklog', ['resources.productBacklog','services.crud'])
             .whenEdit({
                 projectId : projectId,
                 backlogItem : ['$route','ProductBacklog', function($route, ProductBacklog){
-                    return ProductBacklog.getById($route.current.params.projectId);
+                    return ProductBacklog.getById($route.current.params.itemId); //这里是itemId,弄清楚
                 }]
             });
 

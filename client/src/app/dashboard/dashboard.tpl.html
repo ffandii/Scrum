@@ -1,0 +1,25 @@
+<h4>我的项目</h4>
+<div ng-include="'projects/projects-list.tpl.html'"></div>
+
+<h4>我的任务</h4>
+<table class="table table-bordered table-condensed table-striped table-hover">
+    <thead>
+        <tr>
+            <th class="span8">任务名</th>
+            <th class="span1">任务评估</th>
+            <th class="span1">保留</th>
+            <th class="span2">工具</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr ng-repeat="task in tasks">
+            <td>{{task.name}}</td>
+            <td>{{task.estimation}}</td>
+            <td>{{task.remaining}}</td>
+            <td></td>
+        </tr>
+        <tr ng-show="!tasks.length">
+            <td colspan="4">尚没有任务分配给你</td>
+        </tr>
+    </tbody>
+</table>

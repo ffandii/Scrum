@@ -51,8 +51,8 @@ angular.module('app').config(['$routeProvider', '$locationProvider', function ($
 
 angular.module('app').run(['security',function(security){
 
-    //get the current user when the application starts
-    //in case they are still logged in from a previous session
+    //当应用启动时立即获取当前用户
+    //可能用户仍然存在于之前的session中
     security.requestCurrentUser();
 
 }]);
@@ -93,7 +93,7 @@ angular.module('app').controller('HeaderCtrl', ['$scope','$location', '$route', 
             return navBarPath === breadcrumbs.getFirst().name;
         };
 
-        $scope.hasPendingRequests = function() {
+        $scope.hasPendingRequests = function() {  //是否正在进行请求
             return httpRequestTracker.hasPendingRequests();
         };
 

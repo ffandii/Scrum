@@ -1,4 +1,4 @@
-/* scrum - v 0.0.1 - 2016-04-08 
+/* scrum - v 0.0.1 - 2016-04-11 
 https://github.com/ffandii/Scrum 
  * Copyright (c) 2016 ffandii 
 */
@@ -306,8 +306,8 @@ angular.module('app').config(['$routeProvider', '$locationProvider', function ($
 
 angular.module('app').run(['security',function(security){
 
-    //get the current user when the application starts
-    //in case they are still logged in from a previous session
+    //当应用启动时立即获取当前用户
+    //可能用户仍然存在于之前的session中
     security.requestCurrentUser();
 
 }]);
@@ -348,11 +348,41 @@ angular.module('app').controller('HeaderCtrl', ['$scope','$location', '$route', 
             return navBarPath === breadcrumbs.getFirst().name;
         };
 
-        $scope.hasPendingRequests = function() {
+        $scope.hasPendingRequests = function() {  //是否正在进行请求
             return httpRequestTracker.hasPendingRequests();
         };
 
         $scope.isAdminOpen = false;
+
+    }]);
+angular.module('dashboard',['resources.projects','resources.tasks'])
+
+.config(['$routeProvider',function($routeProvider){
+        $routeProvider.when('/dashboard',{
+            templateUrl:'dashboard/dashboard.tpl.html',
+            controller:'DashboardCtrl',
+            resolve:{
+                projects: ['Projects',function(Projects){
+                    return Projects.all();
+                }],
+                tasks: ['Tasks',function(Tasks){
+                    return Tasks.all();
+                }]
+            }
+        });
+    }])
+
+.controller('DashboardCtrl',['$scope','$location','projects','tasks',function($scope, $location, projects, tasks){
+        $scope.projects = projects;
+        $scope.tasks = tasks;
+
+        $scope.manageBacklog = function (projectId) {
+            $location.path('/projects/' + projectId + '/productbacklog');
+        };
+
+        $scope.manageSprints = function (projectId) {
+            $location.path('/projects/' + projectId + '/sprints');
+        };
 
     }]);
 angular.module('productbacklog', ['resources.productBacklog','services.crud'])
@@ -380,7 +410,7 @@ angular.module('productbacklog', ['resources.productBacklog','services.crud'])
             .whenEdit({
                 projectId : projectId,
                 backlogItem : ['$route','ProductBacklog', function($route, ProductBacklog){
-                    return ProductBacklog.getById($route.current.params.projectId);
+                    return ProductBacklog.getById($route.current.params.itemId); //这里是itemId,弄清楚
                 }]
             });
 
@@ -412,7 +442,6 @@ angular.module('projects', ['resources.projects', 'productbacklog', 'sprints', '
             controller:'ProjectsViewCtrl',
             resolve:{
                 projects:['Projects', function (Projects) {
-                    //TODO: fetch only for the current user
                     return Projects.all();
                 }],
                 authenticatedUser: securityAuthorizationProvider.requireAuthenticatedUser
@@ -635,22 +664,22 @@ angular.module('directives.crud.buttons', [])
     });
 angular.module('directives.crud.edit', [])
 
-//apply this directive to an element at or below a form that will manage crud operations on a resource
-//the resource must expose the following instance methods: $saveOrUpdate() $id() and $remove()
+//把这样一个指令添加到form元素或者其内， 将会管理资源上的crud操作
+//资源必须暴露以下这些方法: $saveOrUpdate() $id() and $remove()
 
 .directive('crudEdit', ['$parse', function($parse){
 
         return {
 
             scope : true,
-            require : "^form",
-            //this directive can only appear as an attribute
-            link : function(scope,element,attrs,form){
+            require : "^form",  //设置要注入当前指令链接函数中的其他指令的控制器
+            //这个指令只能作为一个属性出现
+            link : function(scope,element,attrs,form){  //link用来将作用域与指令链接起来
 
-                var resourceGetter = $parse(attrs.crudEdit);
-                var resourceSetter = resourceGetter.assign;
+                var resourceGetter = $parse(attrs.crudEdit);  //获取的对象
+                var resourceSetter = resourceGetter.assign;   //用于设置该对象
                 //store the object for easy access
-                var resource = resourceGetter(scope);
+                var resource = resourceGetter(scope);  //整个scope作用域中包含的资源
                 var original = angular.copy(resource);
 
                 var checkResourceMethod = function(methodName){
@@ -665,7 +694,7 @@ angular.module('directives.crud.edit', [])
 
                 //该功能可以帮助我们从指令属性中提取命令函数
                 var makeFn = function(attrName){
-                    var fn = scope.$eval(attrs[attrName]);
+                    var fn = scope.$eval(attrs[attrName]);  //引入需要的函数
                     if(!angular.isFunction(fn)){
                         throw new Error('crudEdit directive: the attribute '+attrName+" must evaluate to a function");
                     }
@@ -1147,18 +1176,18 @@ angular.module('security',[
 //注入$httpProvider服务的响应拦截器
 angular.module('security.interceptor', ['security.retryQueue'])
 
-//this http interceptor listens for authentication failures
+//http拦截器监听授权失败的情形
 
     .factory('securityInterceptor',['$injector','securityRetryQueue',function($injector,queue){
 
         return function(promise){
 
-            //intercept failed requests
+            //中断失败的请求
             return promise.then(null, function( originalResponse ){
 
                 if( originalResponse.status === 401 ){
                     promise = queue.pushRetryFn('unauthorized-server', function retryRequest(){
-                        //we must use $inject to get the $http service to prevent circular dependency
+                        //利用$injector获取$http服务，防止循环依赖
                         return $injector.get('$http')(originalResponse.config);
 
                     });
@@ -1177,8 +1206,6 @@ angular.module('security.interceptor', ['security.retryQueue'])
         $httpProvider.responseInterceptors.push('securityInterceptor');
 
     }]);
-
-
 angular.module('security.login.form', ['services.localizedMessages'])
 
     .controller('LoginFormController', ['$scope', 'security', 'localizedMessages', function( $scope, security, localizedMessages ){
@@ -1226,9 +1253,6 @@ angular.module('security.login.form', ['services.localizedMessages'])
 angular.module('security.login', ['security.login.form', 'security.login.toolbar']);
 angular.module('security.login.toolbar',[])
 
-//the login toolToolbar directive is a reusable widget that can show login or logout button
-//and information the current authenticated user
-
     .directive('loginToolbar', ['security', function(security){  //指令中提供的字段选项都是可选的
 
         var directive = {
@@ -1267,7 +1291,7 @@ angular.module('security.retryQueue', [])
 
             push : function( retryItem ) {
                 retryQueue.push( retryItem );
-                //call all the onItemAdded callbacks
+                //调用所有的 onItemAdded callbacks
                 angular.forEach( service.onItemAddedCallbacks, function( cb ){
                     try {
                         cb( retryItem );
@@ -1291,14 +1315,14 @@ angular.module('security.retryQueue', [])
                     retry : function(){
                         //wrap the result of the retryFn into a promise if it is not already
                         $q.when(retryFn()).then(function(value){
-                            //if it was successful, then resolve our deferred
+
                             deferred.resolve(value);
                         }, function(value){
-                            //otherwise reject it
+
                             deferred.reject(value);
                         });
                     },
-                    //give up our retrying and reject our deferred
+                    //reject未来的状态
                     cancel : function(){
                         deferred.reject();
                     }
@@ -1330,9 +1354,9 @@ angular.module('security.retryQueue', [])
     }]);
 //based loosely around work by Witold Szczerba
 angular.module('security.service',[
-    'security.retryQueue',  //keeps track of the failed requests that need to be retried once the user logs in
-    'security.login',       //contains the login form templates and controller
-    'ui.bootstrap.dialog'   //used to display the login form as a modal dialog
+    'security.retryQueue',  //跟踪失败的请求，在用户login后重试
+    'security.login',       //含有登录时的表格模板和控制器
+    'ui.bootstrap.dialog'   //利用弹出对话框形式展示登录表格
 ])
 
 .factory('security', ['$http', '$q', '$location', 'securityRetryQueue', '$dialog', function( $http, $q, $location, queue, $dialog ){
@@ -1404,13 +1428,12 @@ angular.module('security.service',[
 
             },
 
-            //give up trying to login and clear the retry queue
+            //放弃重试，更新retry队列
             cancelLogin : function(){
                 closeLoginDialog(false);
                 redirect();
             },
 
-            //logout the current user and redirect
             logout : function(redirectTo){
                 $http.post('/logout').then(function(){
                     service.currentUser = null;
@@ -1418,7 +1441,7 @@ angular.module('security.service',[
                 });
             },
 
-            //ask the backend to see if a user is already authenticated -- this may be from a previous session
+            //获取当前的用户，可能存在于之前的session中
             requestCurrentUser : function(){
                 if(service.isAuthenticated()){
                     return $q.when(service.currentUser);  //传值服务
@@ -1454,8 +1477,7 @@ angular.module('services.breadcrumbs',[])
         var breadcrumbs = [];
         var breadcrumbsService = {};
 
-        //we only want to update a breadcrumbs only when a route is actually changed
-        //as $location.path will get updated immediately
+        //路由变化时更新面包屑导航
 
         $rootScope.$on('$routeChangeSuccess',function( event, current ){
 
@@ -1564,47 +1586,36 @@ angular.module('services.crud').factory('crudListMethods',['$location',function(
 
     function crudRouteProvider($routeProvider){
 
-        //this $get noop is because at the moment in angularjs "providers" must provide something
-        //via a $get method
-        //when angularjs has "provide helpers" then this will go away
+        //angularjs的provides必须要提供一些东西
         this.$get = angular.noop;
 
-        //in any case the point is that this function is the key part of this "provider helper"
-        //we use it to create routes for CRUD operations.we give it some basic information about the resource and the urls
-        // then it returns our own special routesProvider
+        //函数是定义服务的主要方式
+        //用这个服务创造crud操作的路由.需要给定关于url和route的基本信息
         this.routesFor = function( resourceName, urlPrefix, routePrefix ){
 
             var baseUrl = resourceName.toLowerCase();
             var baseRoute = '/' + resourceName.toLowerCase();
             routePrefix = routePrefix || urlPrefix;
 
-            //prepend the urlPrefix if it is available
             if( angular.isString(urlPrefix) && urlPrefix !== "" ){
                 baseUrl = urlPrefix + "/" + baseUrl;
             }
 
-            //prepend the routePrefix if it is provided
             if( routePrefix !== null &&  routePrefix !== undefined && routePrefix !== ""){
                 baseRoute = '/' + routePrefix + baseRoute;
             }
 
-            //create the template url for a route to our resource that does the specified operation
-            var templateUrl = function(operation){                    //这里漏掉了toLowerCase
+            var templateUrl = function(operation){ //返回模板文件的名字
                 return baseUrl + '/' + resourceName.toLowerCase() + '-' + operation.toLowerCase() + '.tpl.html';
             };
 
-            //create the controller name for a route to our resource that does the specified operation
-            var controllerName = function(operation){
+            var controllerName = function(operation){  //返回控制器的名字
                 return resourceName + operation + 'Ctrl';
             };
 
-            //this is the object that our 'RouteFor() function returns. it decorate $routeProvider
-            //delegate the when() and otherwise() functions but also exposing some new functions for
-            //creating new crud routes
-
             var routeBuilder = {
 
-                //create a route that will showing a list of items
+                //创建一个路由用于list items
                 whenList : function(resolveFns){
                     routeBuilder.when(baseRoute,{
                         templateUrl : templateUrl('List'),
@@ -1613,7 +1624,7 @@ angular.module('services.crud').factory('crudListMethods',['$location',function(
                     });
                     return routeBuilder;
                 },
-                //creating a route that will handle creating a new item
+                //创建一个路由来创建item
                 whenNew : function(resolveFns){
                     routeBuilder.when(baseRoute+'/new',{
                         templateUrl : templateUrl('Edit'),
@@ -1622,7 +1633,7 @@ angular.module('services.crud').factory('crudListMethods',['$location',function(
                     });
                     return routeBuilder;
                 },
-                //creating a route that will handle editing an existing item
+                //创建一个路由来编辑已经存在的item
                 whenEdit : function(resolveFns){
                     routeBuilder.when(baseRoute +'/:itemId',{
                         templateUrl : templateUrl('Edit'),  //少写了url这几个字
@@ -1648,9 +1659,9 @@ angular.module('services.crud').factory('crudListMethods',['$location',function(
 
     }
 
-    crudRouteProvider.$injector = ['$routeProvider'];
+    crudRouteProvider.$injector = ['$routeProvider'];  //通过$injector注入依赖的服务
 
-    angular.module('services.crudRouteProvider',['ngRoute']).provider('crudRoute',crudRouteProvider);
+    angular.module('services.crudRouteProvider',['ngRoute']).provider('crudRoute',crudRouteProvider);  //注册模块
 
 
 })();
@@ -1776,7 +1787,7 @@ angular.module('services.notifications',[])
         return notificationsService;
 
     }]);
-angular.module('templates.app', ['admin/projects/projects-edit.tpl.html', 'admin/projects/projects-list.tpl.html', 'admin/users/users-edit.tpl.html', 'admin/users/users-list.tpl.html', 'header.tpl.html', 'notifications.tpl.html', 'projects/productbacklog/productbacklog-edit.tpl.html', 'projects/productbacklog/productbacklog-list.tpl.html', 'projects/projects-list.tpl.html', 'projects/sprints/tasks/tasks-edit.tpl.html', 'projects/sprints/tasks/tasks-list.tpl.html', 'projectsInfo/list.tpl.html']);
+angular.module('templates.app', ['admin/projects/projects-edit.tpl.html', 'admin/projects/projects-list.tpl.html', 'admin/users/users-edit.tpl.html', 'admin/users/users-list.tpl.html', 'dashboard/dashboard.tpl.html', 'header.tpl.html', 'notifications.tpl.html', 'projects/productbacklog/productbacklog-edit.tpl.html', 'projects/productbacklog/productbacklog-list.tpl.html', 'projects/projects-list.tpl.html', 'projects/sprints/sprints-edit.tpl.html', 'projects/sprints/sprints-list.tpl.html', 'projects/sprints/tasks/tasks-edit.tpl.html', 'projects/sprints/tasks/tasks-list.tpl.html', 'projectsInfo/list.tpl.html']);
 
 angular.module("admin/projects/projects-edit.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("admin/projects/projects-edit.tpl.html",
@@ -1908,6 +1919,35 @@ angular.module("admin/users/users-list.tpl.html", []).run(["$templateCache", fun
     "</div>");
 }]);
 
+angular.module("dashboard/dashboard.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("dashboard/dashboard.tpl.html",
+    "<h4>我的项目</h4>\n" +
+    "<div ng-include=\"'projects/projects-list.tpl.html'\"></div>\n" +
+    "\n" +
+    "<h4>我的任务</h4>\n" +
+    "<table class=\"table table-bordered table-condensed table-striped table-hover\">\n" +
+    "    <thead>\n" +
+    "        <tr>\n" +
+    "            <th class=\"span8\">任务名</th>\n" +
+    "            <th class=\"span1\">任务评估</th>\n" +
+    "            <th class=\"span1\">保留</th>\n" +
+    "            <th class=\"span2\">工具</th>\n" +
+    "        </tr>\n" +
+    "    </thead>\n" +
+    "    <tbody>\n" +
+    "        <tr ng-repeat=\"task in tasks\">\n" +
+    "            <td>{{task.name}}</td>\n" +
+    "            <td>{{task.estimation}}</td>\n" +
+    "            <td>{{task.remaining}}</td>\n" +
+    "            <td></td>\n" +
+    "        </tr>\n" +
+    "        <tr ng-show=\"!tasks.length\">\n" +
+    "            <td colspan=\"4\">尚没有任务分配给你</td>\n" +
+    "        </tr>\n" +
+    "    </tbody>\n" +
+    "</table>");
+}]);
+
 angular.module("header.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("header.tpl.html",
     "<div class=\"navbar\" ng-controller=\"HeaderCtrl\">\n" +
@@ -1992,13 +2032,13 @@ angular.module("projects/productbacklog/productbacklog-list.tpl.html", []).run([
     "            <td>{{backlogItem.priority}}</td>\n" +
     "            <td>{{backlogItem.estimation}}</td>\n" +
     "        </tr>\n" +
-    "        <tr ng-show=\"!backlog.length()\">\n" +
+    "        <tr ng-show=\"!backlog.length\">\n" +
     "            <td colspan=\"4\">待办列表中尚无条目</td>\n" +
     "        </tr>\n" +
     "    </tbody>\n" +
     "</table>\n" +
     "<div class=\"well\">\n" +
-    "    <button class=\"btn\" ng-click=\"new\">新建待办条目</button>\n" +
+    "    <button class=\"btn\" ng-click=\"new()\">新建待办条目</button>\n" +
     "</div>");
 }]);
 
@@ -2025,6 +2065,126 @@ angular.module("projects/projects-list.tpl.html", []).run(["$templateCache", fun
     "        </tr>\n" +
     "    </tbody>\n" +
     "</table>");
+}]);
+
+angular.module("projects/sprints/sprints-edit.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("projects/sprints/sprints-edit.tpl.html",
+    "<div class=\"well\">\n" +
+    "    <h4>冲刺</h4>\n" +
+    "    <hr>\n" +
+    "    <form name=\"form\" crud-edit=\"sprint\">\n" +
+    "        <div class=\"row-fluid\">\n" +
+    "            <div class=\"span6\">\n" +
+    "                <label>冲刺名称</label>\n" +
+    "                <input type=\"text\" name=\"name\" ng-model=\"sprint.name\" class=\"span10\" required autofocus>\n" +
+    "                <label>容量</label>\n" +
+    "                <input type=\"number\" name=\"description\" ng-model=\"sprint.capacity\" class=\"span5\" required>\n" +
+    "            </div>\n" +
+    "            <div class=\"span6\">\n" +
+    "                <label>起始日期</label>\n" +
+    "                <input type=\"text\" name=\"name\" ng-model=\"sprint.start\" class=\"span5\" required>\n" +
+    "                <label>终止日期</label>\n" +
+    "                <input type=\"text\" name=\"name\" ng-model=\"sprint.end\" class=\"span5\" required>\n" +
+    "            </div>\n" +
+    "        </div>\n" +
+    "        <hr>\n" +
+    "        <h4>冲刺待办列表</h4>\n" +
+    "        <hr>\n" +
+    "        <div class=\"row-fluid\">\n" +
+    "            <div class=\"span6\">\n" +
+    "                <label>目前在冲刺上的待办列表</label>\n" +
+    "                <table class=\"table table-bordered table-condensed table-striped table-hover\">\n" +
+    "                    <thead>\n" +
+    "                    <tr>\n" +
+    "                        <th class=\"span8\">名称</th>\n" +
+    "                        <th class=\"span2\">评估</th>\n" +
+    "                        <th class=\"span2\">工具</th>\n" +
+    "                    </tr>\n" +
+    "                    </thead>\n" +
+    "                    <tbody>\n" +
+    "                    <tr ng-repeat=\"sprintBacklogItem in sprint.sprintBacklog\">\n" +
+    "                        <td><a ng-click=\"viewProductBacklogItem(sprintBacklogItem)\">{{productBacklogLookup[sprintBacklogItem].name}}</a>\n" +
+    "                        </td>\n" +
+    "                        <td>{{productBacklogLookup[sprintBacklogItem].estimation}}</td>\n" +
+    "                        <td>\n" +
+    "                            <button class=\"btn btn-mini btn-danger\" ng-click=\"removeBacklogItem(sprintBacklogItem)\">\n" +
+    "                                删除\n" +
+    "                            </button>\n" +
+    "                        </td>\n" +
+    "                    </tr>\n" +
+    "                    </tbody>\n" +
+    "                    <tfoot>\n" +
+    "                    <tr>\n" +
+    "                        <td>总体评估</td>\n" +
+    "                        <td>{{estimationInTotal()}}</td>\n" +
+    "                        <td>-</td>\n" +
+    "                    </tr>\n" +
+    "                    </tfoot>\n" +
+    "                </table>\n" +
+    "            </div>\n" +
+    "            <div class=\"span6\">\n" +
+    "                <label>产品待办列表</label>\n" +
+    "                <table class=\"table table-bordered table-condensed table-striped table-hover\">\n" +
+    "                    <thead>\n" +
+    "                    <tr>\n" +
+    "                        <th class=\"span8\">名称</th>\n" +
+    "                        <th class=\"span2\">评估</th>\n" +
+    "                        <th class=\"span2\">工具</th>\n" +
+    "                    </tr>\n" +
+    "                    </thead>\n" +
+    "                    <tbody>\n" +
+    "                    <tr ng-repeat=\"productBacklogItem in productBacklog | filter:notSelected\">\n" +
+    "                        <td>\n" +
+    "                            <a ng-click=\"viewProductBacklogItem(productBacklogItem.$id())\">{{productBacklogItem.name}}</a>\n" +
+    "                        </td>\n" +
+    "                        <td>{{productBacklogItem.estimation}}</td>\n" +
+    "                        <td>\n" +
+    "                            <button class=\"btn btn-mini\" ng-click=\"addBacklogItem(productBacklogItem)\">添加到冲刺\n" +
+    "                            </button>\n" +
+    "                        </td>\n" +
+    "                    </tr>\n" +
+    "                    </tbody>\n" +
+    "                </table>\n" +
+    "            </div>\n" +
+    "        </div>\n" +
+    "        <hr>\n" +
+    "        <div>\n" +
+    "            <crud-buttons></crud-buttons>\n" +
+    "        </div>\n" +
+    "    </form>\n" +
+    "</div>");
+}]);
+
+angular.module("projects/sprints/sprints-list.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("projects/sprints/sprints-list.tpl.html",
+    "<table class=\"table table-bordered table-condensed table-striped table-hover\">\n" +
+    "    <thead>\n" +
+    "    <tr>\n" +
+    "        <th>冲刺名称</th>\n" +
+    "        <th>起始日期</th>\n" +
+    "        <th>终止日期</th>\n" +
+    "        <th>状态</th>\n" +
+    "        <th>工具</th>\n" +
+    "    </tr>\n" +
+    "    </thead>\n" +
+    "    <tbody>\n" +
+    "    <tr ng-repeat=\"sprint in sprints\">\n" +
+    "        <td ng-click=\"edit(sprint.$id())\">{{sprint.name}}</td>\n" +
+    "        <td ng-click=\"edit(sprint.$id())\">{{sprint.start}}</td>\n" +
+    "        <td ng-click=\"edit(sprint.$id())\">{{sprint.end}}</td>\n" +
+    "        <td ng-click=\"edit(sprint.$id())\">激活</td>\n" +
+    "        <td>\n" +
+    "            <button type=\"button\" class=\"btn btn-mini\" ng-click=\"tasks(sprint)\">任务</button>\n" +
+    "        </td>\n" +
+    "    </tr>\n" +
+    "    <tr ng-show=\"!sprints.length\">\n" +
+    "        <td colspan=\"5\">尚无冲刺定义</td>\n" +
+    "    </tr>\n" +
+    "    </tbody>\n" +
+    "</table>\n" +
+    "<div class=\"well\">\n" +
+    "    <button class=\"btn\" ng-click=\"new()\">新建冲刺</button>\n" +
+    "</div>");
 }]);
 
 angular.module("projects/sprints/tasks/tasks-edit.tpl.html", []).run(["$templateCache", function($templateCache) {

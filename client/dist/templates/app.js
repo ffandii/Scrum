@@ -1,4 +1,4 @@
-angular.module('templates.app', ['admin/projects/projects-edit.tpl.html', 'admin/projects/projects-list.tpl.html', 'admin/users/users-edit.tpl.html', 'admin/users/users-list.tpl.html', 'header.tpl.html', 'notifications.tpl.html', 'projects/productbacklog/productbacklog-edit.tpl.html', 'projects/productbacklog/productbacklog-list.tpl.html', 'projects/projects-list.tpl.html', 'projects/sprints/tasks/tasks-edit.tpl.html', 'projects/sprints/tasks/tasks-list.tpl.html', 'projectsInfo/list.tpl.html']);
+angular.module('templates.app', ['admin/projects/projects-edit.tpl.html', 'admin/projects/projects-list.tpl.html', 'admin/users/users-edit.tpl.html', 'admin/users/users-list.tpl.html', 'dashboard/dashboard.tpl.html', 'header.tpl.html', 'notifications.tpl.html', 'projects/productbacklog/productbacklog-edit.tpl.html', 'projects/productbacklog/productbacklog-list.tpl.html', 'projects/projects-list.tpl.html', 'projects/sprints/sprints-edit.tpl.html', 'projects/sprints/sprints-list.tpl.html', 'projects/sprints/tasks/tasks-edit.tpl.html', 'projects/sprints/tasks/tasks-list.tpl.html', 'projectsInfo/list.tpl.html']);
 
 angular.module("admin/projects/projects-edit.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("admin/projects/projects-edit.tpl.html",
@@ -130,6 +130,35 @@ angular.module("admin/users/users-list.tpl.html", []).run(["$templateCache", fun
     "</div>");
 }]);
 
+angular.module("dashboard/dashboard.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("dashboard/dashboard.tpl.html",
+    "<h4>我的项目</h4>\n" +
+    "<div ng-include=\"'projects/projects-list.tpl.html'\"></div>\n" +
+    "\n" +
+    "<h4>我的任务</h4>\n" +
+    "<table class=\"table table-bordered table-condensed table-striped table-hover\">\n" +
+    "    <thead>\n" +
+    "        <tr>\n" +
+    "            <th class=\"span8\">任务名</th>\n" +
+    "            <th class=\"span1\">任务评估</th>\n" +
+    "            <th class=\"span1\">保留</th>\n" +
+    "            <th class=\"span2\">工具</th>\n" +
+    "        </tr>\n" +
+    "    </thead>\n" +
+    "    <tbody>\n" +
+    "        <tr ng-repeat=\"task in tasks\">\n" +
+    "            <td>{{task.name}}</td>\n" +
+    "            <td>{{task.estimation}}</td>\n" +
+    "            <td>{{task.remaining}}</td>\n" +
+    "            <td></td>\n" +
+    "        </tr>\n" +
+    "        <tr ng-show=\"!tasks.length\">\n" +
+    "            <td colspan=\"4\">尚没有任务分配给你</td>\n" +
+    "        </tr>\n" +
+    "    </tbody>\n" +
+    "</table>");
+}]);
+
 angular.module("header.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("header.tpl.html",
     "<div class=\"navbar\" ng-controller=\"HeaderCtrl\">\n" +
@@ -214,13 +243,13 @@ angular.module("projects/productbacklog/productbacklog-list.tpl.html", []).run([
     "            <td>{{backlogItem.priority}}</td>\n" +
     "            <td>{{backlogItem.estimation}}</td>\n" +
     "        </tr>\n" +
-    "        <tr ng-show=\"!backlog.length()\">\n" +
+    "        <tr ng-show=\"!backlog.length\">\n" +
     "            <td colspan=\"4\">待办列表中尚无条目</td>\n" +
     "        </tr>\n" +
     "    </tbody>\n" +
     "</table>\n" +
     "<div class=\"well\">\n" +
-    "    <button class=\"btn\" ng-click=\"new\">新建待办条目</button>\n" +
+    "    <button class=\"btn\" ng-click=\"new()\">新建待办条目</button>\n" +
     "</div>");
 }]);
 
@@ -247,6 +276,126 @@ angular.module("projects/projects-list.tpl.html", []).run(["$templateCache", fun
     "        </tr>\n" +
     "    </tbody>\n" +
     "</table>");
+}]);
+
+angular.module("projects/sprints/sprints-edit.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("projects/sprints/sprints-edit.tpl.html",
+    "<div class=\"well\">\n" +
+    "    <h4>冲刺</h4>\n" +
+    "    <hr>\n" +
+    "    <form name=\"form\" crud-edit=\"sprint\">\n" +
+    "        <div class=\"row-fluid\">\n" +
+    "            <div class=\"span6\">\n" +
+    "                <label>冲刺名称</label>\n" +
+    "                <input type=\"text\" name=\"name\" ng-model=\"sprint.name\" class=\"span10\" required autofocus>\n" +
+    "                <label>容量</label>\n" +
+    "                <input type=\"number\" name=\"description\" ng-model=\"sprint.capacity\" class=\"span5\" required>\n" +
+    "            </div>\n" +
+    "            <div class=\"span6\">\n" +
+    "                <label>起始日期</label>\n" +
+    "                <input type=\"text\" name=\"name\" ng-model=\"sprint.start\" class=\"span5\" required>\n" +
+    "                <label>终止日期</label>\n" +
+    "                <input type=\"text\" name=\"name\" ng-model=\"sprint.end\" class=\"span5\" required>\n" +
+    "            </div>\n" +
+    "        </div>\n" +
+    "        <hr>\n" +
+    "        <h4>冲刺待办列表</h4>\n" +
+    "        <hr>\n" +
+    "        <div class=\"row-fluid\">\n" +
+    "            <div class=\"span6\">\n" +
+    "                <label>目前在冲刺上的待办列表</label>\n" +
+    "                <table class=\"table table-bordered table-condensed table-striped table-hover\">\n" +
+    "                    <thead>\n" +
+    "                    <tr>\n" +
+    "                        <th class=\"span8\">名称</th>\n" +
+    "                        <th class=\"span2\">评估</th>\n" +
+    "                        <th class=\"span2\">工具</th>\n" +
+    "                    </tr>\n" +
+    "                    </thead>\n" +
+    "                    <tbody>\n" +
+    "                    <tr ng-repeat=\"sprintBacklogItem in sprint.sprintBacklog\">\n" +
+    "                        <td><a ng-click=\"viewProductBacklogItem(sprintBacklogItem)\">{{productBacklogLookup[sprintBacklogItem].name}}</a>\n" +
+    "                        </td>\n" +
+    "                        <td>{{productBacklogLookup[sprintBacklogItem].estimation}}</td>\n" +
+    "                        <td>\n" +
+    "                            <button class=\"btn btn-mini btn-danger\" ng-click=\"removeBacklogItem(sprintBacklogItem)\">\n" +
+    "                                删除\n" +
+    "                            </button>\n" +
+    "                        </td>\n" +
+    "                    </tr>\n" +
+    "                    </tbody>\n" +
+    "                    <tfoot>\n" +
+    "                    <tr>\n" +
+    "                        <td>总体评估</td>\n" +
+    "                        <td>{{estimationInTotal()}}</td>\n" +
+    "                        <td>-</td>\n" +
+    "                    </tr>\n" +
+    "                    </tfoot>\n" +
+    "                </table>\n" +
+    "            </div>\n" +
+    "            <div class=\"span6\">\n" +
+    "                <label>产品待办列表</label>\n" +
+    "                <table class=\"table table-bordered table-condensed table-striped table-hover\">\n" +
+    "                    <thead>\n" +
+    "                    <tr>\n" +
+    "                        <th class=\"span8\">名称</th>\n" +
+    "                        <th class=\"span2\">评估</th>\n" +
+    "                        <th class=\"span2\">工具</th>\n" +
+    "                    </tr>\n" +
+    "                    </thead>\n" +
+    "                    <tbody>\n" +
+    "                    <tr ng-repeat=\"productBacklogItem in productBacklog | filter:notSelected\">\n" +
+    "                        <td>\n" +
+    "                            <a ng-click=\"viewProductBacklogItem(productBacklogItem.$id())\">{{productBacklogItem.name}}</a>\n" +
+    "                        </td>\n" +
+    "                        <td>{{productBacklogItem.estimation}}</td>\n" +
+    "                        <td>\n" +
+    "                            <button class=\"btn btn-mini\" ng-click=\"addBacklogItem(productBacklogItem)\">添加到冲刺\n" +
+    "                            </button>\n" +
+    "                        </td>\n" +
+    "                    </tr>\n" +
+    "                    </tbody>\n" +
+    "                </table>\n" +
+    "            </div>\n" +
+    "        </div>\n" +
+    "        <hr>\n" +
+    "        <div>\n" +
+    "            <crud-buttons></crud-buttons>\n" +
+    "        </div>\n" +
+    "    </form>\n" +
+    "</div>");
+}]);
+
+angular.module("projects/sprints/sprints-list.tpl.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("projects/sprints/sprints-list.tpl.html",
+    "<table class=\"table table-bordered table-condensed table-striped table-hover\">\n" +
+    "    <thead>\n" +
+    "    <tr>\n" +
+    "        <th>冲刺名称</th>\n" +
+    "        <th>起始日期</th>\n" +
+    "        <th>终止日期</th>\n" +
+    "        <th>状态</th>\n" +
+    "        <th>工具</th>\n" +
+    "    </tr>\n" +
+    "    </thead>\n" +
+    "    <tbody>\n" +
+    "    <tr ng-repeat=\"sprint in sprints\">\n" +
+    "        <td ng-click=\"edit(sprint.$id())\">{{sprint.name}}</td>\n" +
+    "        <td ng-click=\"edit(sprint.$id())\">{{sprint.start}}</td>\n" +
+    "        <td ng-click=\"edit(sprint.$id())\">{{sprint.end}}</td>\n" +
+    "        <td ng-click=\"edit(sprint.$id())\">激活</td>\n" +
+    "        <td>\n" +
+    "            <button type=\"button\" class=\"btn btn-mini\" ng-click=\"tasks(sprint)\">任务</button>\n" +
+    "        </td>\n" +
+    "    </tr>\n" +
+    "    <tr ng-show=\"!sprints.length\">\n" +
+    "        <td colspan=\"5\">尚无冲刺定义</td>\n" +
+    "    </tr>\n" +
+    "    </tbody>\n" +
+    "</table>\n" +
+    "<div class=\"well\">\n" +
+    "    <button class=\"btn\" ng-click=\"new()\">新建冲刺</button>\n" +
+    "</div>");
 }]);
 
 angular.module("projects/sprints/tasks/tasks-edit.tpl.html", []).run(["$templateCache", function($templateCache) {

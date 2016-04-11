@@ -10,7 +10,7 @@ angular.module('directives.crud.edit', [])
             scope : true,
             require : "^form",  //设置要注入当前指令链接函数中的其他指令的控制器
             //这个指令只能作为一个属性出现
-            link : function(scope,element,attrs,form){
+            link : function(scope,element,attrs,form){  //link用来将作用域与指令链接起来
 
                 var resourceGetter = $parse(attrs.crudEdit);  //获取的对象
                 var resourceSetter = resourceGetter.assign;   //用于设置该对象
