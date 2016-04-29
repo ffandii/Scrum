@@ -26,9 +26,9 @@ app.use(protectJSON);
 app.use(express.logger());  //在控制台记录请求
 app.use(express.bodyParser());  //解析请求体中的数据
 app.use(express.cookieParser(config.server.cookieSecret));  //cookieSecret用于加密cookie
-app.use(express.cookieSession());
+app.use(express.cookieSession());//启用基于cookie的session
 app.use(passport.initialize());  //passport初始化
-app.use(passport.session());     //用开启session管理用户
+app.use(passport.session());     //开启session管理用户
 app.use(xsrf);
 security.initialize(config.mongo.dbUrl,config.mongo.apiKey,config.security.dbName,config.security.usersCollection);
 
