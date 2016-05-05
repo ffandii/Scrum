@@ -25,25 +25,24 @@ angular.module('security.retryQueue', [])
             },
 
             pushRetryFn : function( reason, retryFn ){
-                //the reason parameter is optional
+
+                //reason参数可选
                 if( arguments.length === 1 ){
                     retryFn = reason;
                     reason = undefined;
                 }
 
-                //the deferred object that will be resolved or rejected by calling retry or cancel
                 var deferred = $q.defer();
                 var retryItem = {
                     reason : reason,
                     retry : function(){
-                        //wrap the result of the retryFn into a promise if it is not already
-                        $q.when(retryFn()).then(function(value){
 
+                        $q.when(retryFn()).then(function(value){
                             deferred.resolve(value);
                         }, function(value){
-
                             deferred.reject(value);
                         });
+
                     },
                     //reject未来的状态
                     cancel : function(){

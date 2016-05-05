@@ -43,7 +43,7 @@ angular.module('security.service',[
 
         }
 
-        //register a handler for when an item is added to the retry queue
+        //retryQueue和security服务之间发生了相互引用，怎么看
         queue.onItemAddedCallbacks.push(function(retryItem){
             if(queue.hasMore()){
                 service.showLogin();
