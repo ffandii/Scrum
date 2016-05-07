@@ -1,4 +1,4 @@
-/* scrum - v 0.0.1 - 2016-04-11 
+/* scrum - v 0.0.1 - 2016-05-07 
 https://github.com/ffandii/Scrum 
  * Copyright (c) 2016 ffandii 
 */
@@ -261,6 +261,7 @@ angular.module('app',[
 
     'ngRoute',
     'projectsInfo',
+    'dashboard',
     'projects',
     'admin',
     'services.breadcrumbs',
@@ -301,7 +302,7 @@ angular.module('app').config(['$routeProvider', '$locationProvider', function ($
                                         //html5模式 http://locahost/mypath..
     $locationProvider.html5Mode(true);
                                         //hashbang模式 http://locahost#/mypath...
-    $routeProvider.otherwise({redirect : '/projectsInfo'});  //路由不匹配时重定向到projectsinfo
+    $routeProvider.otherwise({redirectTo : '/projectsInfo'});  //路由不匹配时重定向到projectsinfo
 }]);
 
 angular.module('app').run(['security',function(security){
@@ -326,7 +327,7 @@ angular.module('app').controller('AppCtrl', ['$scope','i18nNotifications','local
 }]);
 
 angular.module('app').controller('HeaderCtrl', ['$scope','$location', '$route', 'security', 'breadcrumbs', 'httpRequestTracker',
-    function ($scope, $route, $location, security, breadcrumbs, httpRequestTracker) {
+    function ($scope,  $location, $route, security, breadcrumbs, httpRequestTracker) {
 
         $scope.location = $location;
         $scope.breadcrumbs = breadcrumbs;
@@ -336,7 +337,7 @@ angular.module('app').controller('HeaderCtrl', ['$scope','$location', '$route', 
 
         $scope.home = function(){
 
-            if( security.isAuthenticated() ){
+            if (security.isAuthenticated()) {
                 $location.path('/dashboard');
             } else {
                 $location.path('/projectsInfo');
@@ -376,12 +377,12 @@ angular.module('dashboard',['resources.projects','resources.tasks'])
         $scope.projects = projects;
         $scope.tasks = tasks;
 
-        $scope.manageBacklog = function (projectId) {
-            $location.path('/projects/' + projectId + '/productbacklog');
+        $scope.manageBacklog = function (project) {
+            $location.path('/projects/' + project.$id() + '/productbacklog');
         };
 
-        $scope.manageSprints = function (projectId) {
-            $location.path('/projects/' + projectId + '/sprints');
+        $scope.manageSprints = function (project) {
+            $location.path('/projects/' + project.$id() + '/sprints');
         };
 
     }]);
@@ -1302,25 +1303,24 @@ angular.module('security.retryQueue', [])
             },
 
             pushRetryFn : function( reason, retryFn ){
-                //the reason parameter is optional
+
+                //reason参数可选
                 if( arguments.length === 1 ){
                     retryFn = reason;
                     reason = undefined;
                 }
 
-                //the deferred object that will be resolved or rejected by calling retry or cancel
                 var deferred = $q.defer();
                 var retryItem = {
                     reason : reason,
                     retry : function(){
-                        //wrap the result of the retryFn into a promise if it is not already
-                        $q.when(retryFn()).then(function(value){
 
+                        $q.when(retryFn()).then(function(value){
                             deferred.resolve(value);
                         }, function(value){
-
                             deferred.reject(value);
                         });
+
                     },
                     //reject未来的状态
                     cancel : function(){
@@ -1397,7 +1397,7 @@ angular.module('security.service',[
 
         }
 
-        //register a handler for when an item is added to the retry queue
+        //retryQueue和security服务之间发生了相互引用，怎么看
         queue.onItemAddedCallbacks.push(function(retryItem){
             if(queue.hasMore()){
                 service.showLogin();
@@ -1824,7 +1824,16 @@ angular.module("admin/projects/projects-edit.tpl.html", []).run(["$templateCache
     "                        <tr ng-repeat=\"userId in project.teamMembers\">\n" +
     "                            <td>{{usersLookup[userId].getFullName()}}</td>\n" +
     "                            <td>\n" +
-    "                                <button class=\"btn btn-small\" ng-click=\"removeTeamMember(userId)\" ng-disabled=\"!selTeamMember\"></button>\n" +
+    "                                <button class=\"btn btn-small\" ng-click=\"removeTeamMember(userId)\">删除</button>\n" +
+    "                            </td>\n" +
+    "                        </tr>\n" +
+    "                        <tr>\n" +
+    "                            <td><select class=\"span6\" ng-model=\"selTeamMember\"\n" +
+    "                                        ng-options=\"user.$id() as user.getFullName() for user in teamMemberCandidates()\"></select>\n" +
+    "                            </td>\n" +
+    "                            <td>\n" +
+    "                                <button class=\"btn btn-small\" ng-click=\"addTeamMember(selTeamMember)\" ng-disabled=\"!selTeamMember\">添加\n" +
+    "                                </button>\n" +
     "                            </td>\n" +
     "                        </tr>\n" +
     "                    </tbody>\n" +

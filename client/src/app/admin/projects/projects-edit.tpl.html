@@ -31,7 +31,16 @@
                         <tr ng-repeat="userId in project.teamMembers">
                             <td>{{usersLookup[userId].getFullName()}}</td>
                             <td>
-                                <button class="btn btn-small" ng-click="removeTeamMember(userId)" ng-disabled="!selTeamMember"></button>
+                                <button class="btn btn-small" ng-click="removeTeamMember(userId)">删除</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><select class="span6" ng-model="selTeamMember"
+                                        ng-options="user.$id() as user.getFullName() for user in teamMemberCandidates()"></select>
+                            </td>
+                            <td>
+                                <button class="btn btn-small" ng-click="addTeamMember(selTeamMember)" ng-disabled="!selTeamMember">添加
+                                </button>
                             </td>
                         </tr>
                     </tbody>

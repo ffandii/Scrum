@@ -6,6 +6,7 @@ angular.module('app',[
 
     'ngRoute',
     'projectsInfo',
+    'dashboard',
     'projects',
     'admin',
     'services.breadcrumbs',
@@ -46,7 +47,7 @@ angular.module('app').config(['$routeProvider', '$locationProvider', function ($
                                         //html5模式 http://locahost/mypath..
     $locationProvider.html5Mode(true);
                                         //hashbang模式 http://locahost#/mypath...
-    $routeProvider.otherwise({redirect : '/projectsInfo'});  //路由不匹配时重定向到projectsinfo
+    $routeProvider.otherwise({redirectTo : '/projectsInfo'});  //路由不匹配时重定向到projectsinfo
 }]);
 
 angular.module('app').run(['security',function(security){
@@ -71,7 +72,7 @@ angular.module('app').controller('AppCtrl', ['$scope','i18nNotifications','local
 }]);
 
 angular.module('app').controller('HeaderCtrl', ['$scope','$location', '$route', 'security', 'breadcrumbs', 'httpRequestTracker',
-    function ($scope, $route, $location, security, breadcrumbs, httpRequestTracker) {
+    function ($scope,  $location, $route, security, breadcrumbs, httpRequestTracker) {
 
         $scope.location = $location;
         $scope.breadcrumbs = breadcrumbs;
@@ -81,7 +82,7 @@ angular.module('app').controller('HeaderCtrl', ['$scope','$location', '$route', 
 
         $scope.home = function(){
 
-            if( security.isAuthenticated() ){
+            if (security.isAuthenticated()) {
                 $location.path('/dashboard');
             } else {
                 $location.path('/projectsInfo');

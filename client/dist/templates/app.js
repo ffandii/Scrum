@@ -35,7 +35,16 @@ angular.module("admin/projects/projects-edit.tpl.html", []).run(["$templateCache
     "                        <tr ng-repeat=\"userId in project.teamMembers\">\n" +
     "                            <td>{{usersLookup[userId].getFullName()}}</td>\n" +
     "                            <td>\n" +
-    "                                <button class=\"btn btn-small\" ng-click=\"removeTeamMember(userId)\" ng-disabled=\"!selTeamMember\"></button>\n" +
+    "                                <button class=\"btn btn-small\" ng-click=\"removeTeamMember(userId)\">删除</button>\n" +
+    "                            </td>\n" +
+    "                        </tr>\n" +
+    "                        <tr>\n" +
+    "                            <td><select class=\"span6\" ng-model=\"selTeamMember\"\n" +
+    "                                        ng-options=\"user.$id() as user.getFullName() for user in teamMemberCandidates()\"></select>\n" +
+    "                            </td>\n" +
+    "                            <td>\n" +
+    "                                <button class=\"btn btn-small\" ng-click=\"addTeamMember(selTeamMember)\" ng-disabled=\"!selTeamMember\">添加\n" +
+    "                                </button>\n" +
     "                            </td>\n" +
     "                        </tr>\n" +
     "                    </tbody>\n" +
