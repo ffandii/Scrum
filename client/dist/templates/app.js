@@ -409,32 +409,33 @@ angular.module("projects/sprints/sprints-list.tpl.html", []).run(["$templateCach
 
 angular.module("projects/sprints/tasks/tasks-edit.tpl.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("projects/sprints/tasks/tasks-edit.tpl.html",
-    "<div class=\"well\">\n" +
-    "    <div class=\"row-fluid\">\n" +
-    "        <form name=\"form\" crud-edit=\"task\">\n" +
+    "<form name=\"form\" crud-edit=\"task\">\n" +
+    "    <div class=\"well\">\n" +
+    "        <div class=\"row-fluid\">\n" +
     "            <div class=\"span6\">\n" +
     "                <label>任务名称</label>\n" +
-    "                <input type=\"text\" name=\"name\" ng-model=\"task.name\" class=\"span10\" required autofocus/>\n" +
+    "                <input type=\"text\" name=\"name\" ng-model=\"task.name\" class=\"span10\" required autofocus>\n" +
     "                <label>产品待办条目</label>\n" +
     "                <select name=\"productBacklog\" class=\"span10\" ng-model=\"task.productBacklogItemId\" ng-options=\"backlogItem.$id() as backlogItem.name for backlogItem in sprintBacklogItems\" required></select>\n" +
     "                <label>任务描述</label>\n" +
-    "                <textarea rows=\"8\" cols=\"10\" ng-model=\"task.desc\" class=\"span10\" required></textarea>\n" +
+    "                <textarea rows=\"8\" cols=\"10\" ng-model=\"task.desc\" class=\"span10\" required>\n" +
+    "                </textarea>\n" +
     "            </div>\n" +
     "            <div class=\"span6\">\n" +
     "                <label>评估</label>\n" +
-    "                <input type=\"number\" name=\"estimation\" ng-model=\"task.estimation\" class=\"span5\" required/>\n" +
+    "                <input type=\"number\" name=\"estimation\" ng-model=\"task.estimation\" class=\"span5\" required>\n" +
     "                <label>保留</label>\n" +
-    "                <input type=\"number\" name=\"remaining\" ng-model=\"task.remaining\" class=\"span5\" required/>\n" +
+    "                <input type=\"number\" name=\"remaining\" ng-model=\"task.remaining\" class=\"span5\" required>\n" +
     "                <label>状态</label>\n" +
     "                <select name=\"state\" ng-model=\"task.state\" class=\"span5\" required ng-options=\"state for state in statesEnum\"></select>\n" +
     "                <label>分配给</label>\n" +
-    "                <select name=\"state\" ng-model=\"task.assignedUserId\" class=\"span10\" ng-model=\"task.assignedUserId\" class=\"span10\" ng-options=\"teamMember.$id() as teamMember.getFullName() for teamMember in teamMembers\"></select>\n" +
+    "                <select name=\"state\" ng-model=\"task.assignedUserId\" class=\"span10\" ng-options=\"teamMember.$id() as teamMember.getFullName() for teamMember in teamMembers\"></select>\n" +
     "            </div>\n" +
-    "        </form>\n" +
+    "        </div>\n" +
+    "        <hr>\n" +
+    "        <crud-buttons></crud-buttons>\n" +
     "    </div>\n" +
-    "    <hr>\n" +
-    "    <crud-buttons></crud-buttons>\n" +
-    "</div>");
+    "</form>");
 }]);
 
 angular.module("projects/sprints/tasks/tasks-list.tpl.html", []).run(["$templateCache", function($templateCache) {

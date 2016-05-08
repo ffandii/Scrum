@@ -20,6 +20,7 @@ angular.module('productbacklog', ['resources.productBacklog','services.crud'])
                     return new ProductBacklog({projectId : $route.current.params.projectId});
                 }]
             })
+
             .whenEdit({
                 projectId : projectId,
                 backlogItem : ['$route','ProductBacklog', function($route, ProductBacklog){
