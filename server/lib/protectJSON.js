@@ -1,4 +1,4 @@
-module.exports = function(req,res,next){
+module.exports = function(req,res,next){  //前面配置好res.send方便后面使用
     var _send = res.send;
     res.send = function(body){
         var contentType = res.getHeader('Content-Type');
